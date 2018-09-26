@@ -26,8 +26,7 @@ pub extern "C" fn contract_main() {
     Transaction::new_json(
         "transfer",
         TransferTx {
-            amount:
-            reason.details.amount,
+            amount: (reason.details.amount + 1) / 2,
             recipient: reason.details.sender
         }
     ).send();
