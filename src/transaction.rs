@@ -5,16 +5,16 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    pub fn new(tag: String, payload: Vec<u8>) -> Transaction {
+    pub fn new<K: Into<String>>(tag: K, payload: Vec<u8>) -> Transaction {
         Transaction {
-            tag: tag,
+            tag: tag.into(),
             payload: payload,
         }
     }
 
-    pub fn new_json<T: ::serde::Serialize>(tag: String, payload: T) -> Transaction {
+    pub fn new_json<K: Into<String>, T: ::serde::Serialize>(tag: K, payload: T) -> Transaction {
         Transaction {
-            tag: tag,
+            tag: tag.into(),
             payload: ::serde_json::to_vec(&payload).unwrap(),
         }
     }
