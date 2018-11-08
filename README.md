@@ -61,7 +61,14 @@ contract_entry!(handle_activation);
 
 ### Build
 
-Make sure you have the latest stable Rust toolchain installed, and run in your project directory:
+Make sure you have the latest stable Rust toolchain with the `wasm32-unknown-unknown` target installed. If you don't
+have the target installed yet, install it with:
+
+```
+rustup target add wasm32-unknown-unknown
+```
+
+Then, run in your project directory:
 
 ```
 cargo build --release --target wasm32-unknown-unknown
