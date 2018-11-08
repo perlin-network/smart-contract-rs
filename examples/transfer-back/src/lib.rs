@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate smart_contract;
 extern crate serde;
 #[macro_use]
@@ -17,17 +18,19 @@ pub struct TransferTx {
     pub recipient: String,
 }
 
-#[no_mangle]
-pub extern "C" fn contract_main() {
+fn handle_activation() {
     let reason: Reason<TransferActivation> = match Reason::load() {
         Some(v) => v,
-        None => return
+        None => return,
     };
     Transaction::new_json(
         "transfer",
         TransferTx {
             amount: (reason.details.amount + 1) / 2,
-            recipient: reason.details.sender
-        }
-    ).send();
+            recipient: reason.details.sender,
+        },
+    )
+    .send();
 }
+
+contract_entry!(handle_activation);
