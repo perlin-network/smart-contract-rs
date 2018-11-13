@@ -4,13 +4,9 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
+use smart_contract::activation::TransferActivation;
+use smart_contract::transaction::transfer;
 use smart_contract::{Reason, Transaction};
-
-#[derive(Deserialize)]
-pub struct TransferActivation {
-    pub sender: String,
-    pub amount: u64,
-}
 
 #[derive(Serialize)]
 pub struct TransferTx {
@@ -23,14 +19,8 @@ fn handle_activation() {
         Some(v) => v,
         None => return,
     };
-    Transaction::new_json(
-        "transfer",
-        TransferTx {
-            amount: (reason.details.amount + 1) / 2,
-            recipient: reason.details.sender,
-        },
-    )
-    .send();
+
+    transfer(&reason.details.sender, (reason.details.amount + 1) / 2);
 }
 
 contract_entry!(handle_activation);
