@@ -1,6 +1,7 @@
 #[derive(Deserialize)]
 pub struct Reason<T> {
     pub kind: String,
+    pub sender: String,
     pub details: T,
 }
 
