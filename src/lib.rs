@@ -1,12 +1,14 @@
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
+pub extern crate serde_json;
 
+pub mod activation;
 pub mod persistent;
 pub mod reason;
 pub mod sys;
 pub mod transaction;
+pub mod utils;
 
 pub use reason::Reason;
 pub use transaction::Transaction;
