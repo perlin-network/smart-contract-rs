@@ -2,10 +2,10 @@ pub trait Token {
     fn name() -> &'static str;
     fn symbol() -> &'static str;
     fn total_supply() -> u64;
-    fn balance_of(account_id: &str) -> u64;
-    fn transfer(from_id: &str, to_id: &str, amount: u64);
-    fn buy(account_id: &str, n_perls: u64);
-    fn sell(account_id: &str, amount: u64) -> u64 /* perls */;
+    fn balance_of(account_id: &[u8]) -> u64;
+    fn transfer(from_id: &[u8], to_id: &[u8], amount: u64);
+    fn buy(account_id: &[u8], n_perls: u64);
+    fn sell(account_id: &[u8], amount: u64) -> u64 /* perls */;
 }
 
 #[macro_export]
@@ -18,7 +18,7 @@ macro_rules! token_entry {
 
         #[derive(Deserialize)]
         pub enum TokenActivationPayload {
-            TransferTo { recipient: String, amount: u64 },
+            TransferTo { recipient: Vec<u8>, amount: u64 },
             Sell { amount: u64 },
         }
 
@@ -37,7 +37,7 @@ macro_rules! token_entry {
                                 Err(_) => return,
                             };
                         let sender = reason.sender;
-                        $entry::buy(sender.as_str(), activation.amount);
+                        $entry::buy(&sender, activation.amount);
                     }
                     "custom" => {
                         let activation: CustomActivation<TokenActivationPayload> =
@@ -49,11 +49,11 @@ macro_rules! token_entry {
                         let payload = activation.body;
                         match payload {
                             TokenActivationPayload::TransferTo { recipient, amount } => {
-                                $entry::transfer(sender.as_str(), recipient.as_str(), amount);
+                                $entry::transfer(&sender, &recipient, amount);
                             }
                             TokenActivationPayload::Sell { amount } => {
-                                let n_perls = $entry::sell(sender.as_str(), amount);
-                                transaction::transfer(sender.as_str(), n_perls);
+                                let n_perls = $entry::sell(&sender, amount);
+                                transaction::transfer(&sender, n_perls);
                             }
                         }
                     }

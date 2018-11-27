@@ -18,16 +18,16 @@ impl Token for ExampleToken {
     fn total_supply() -> u64 {
         0
     }
-    fn balance_of(account_id: &str) -> u64 {
+    fn balance_of(account_id: &[u8]) -> u64 {
         0
     }
-    fn transfer(from_id: &str, to_id: &str, amount: u64) {
+    fn transfer(from_id: &[u8], to_id: &[u8], amount: u64) {
         panic!()
     }
-    fn buy(account_id: &str, n_perls: u64) {
+    fn buy(account_id: &[u8], n_perls: u64) {
         panic!()
     }
-    fn sell(account_id: &str, amount: u64) -> u64 {
+    fn sell(account_id: &[u8], amount: u64) -> u64 {
         panic!()
     }
 }

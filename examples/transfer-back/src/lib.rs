@@ -1,18 +1,10 @@
 #[macro_use]
 extern crate smart_contract;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 
 use smart_contract::activation::TransferActivation;
 use smart_contract::transaction::transfer;
-use smart_contract::{Reason, Transaction};
-
-#[derive(Serialize)]
-pub struct TransferTx {
-    pub amount: u64,
-    pub recipient: String,
-}
+use smart_contract::Reason;
 
 fn handle_activation() {
     let reason: Reason<TransferActivation> = match Reason::load() {

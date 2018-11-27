@@ -7,7 +7,7 @@ pub struct Transaction {
 #[derive(Serialize)]
 pub struct TransferTx<'a> {
     pub amount: u64,
-    pub recipient: &'a str,
+    pub recipient: &'a [u8],
 }
 
 impl Transaction {
@@ -35,7 +35,7 @@ impl Transaction {
     }
 }
 
-pub fn transfer(recipient: &str, amount: u64) {
+pub fn transfer(recipient: &[u8], amount: u64) {
     Transaction::new_json(
         "transfer",
         TransferTx {

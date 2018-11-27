@@ -1,6 +1,6 @@
 #[derive(Deserialize)]
 pub struct TransferActivation {
-    pub sender: String,
+    pub sender: Vec<u8>,
     pub amount: u64,
 }
 
