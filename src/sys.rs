@@ -9,4 +9,6 @@ extern "C" {
         payload: *const u8,
         payload_len: usize,
     );
+
+    pub fn _log(content: *const u8, len: usize);
 }

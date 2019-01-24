@@ -21,6 +21,8 @@ impl Token {
 
         balances.insert(params.sender.clone(), 100000);
 
+        ::smart_contract::log("init called");
+
         (Self {balances}, None)
     }
 
@@ -33,6 +35,8 @@ impl Token {
             Some(balance) => *balance,
             None => 0
         };
+
+        ::smart_contract::log(&format!("address = {:?}, balance = {}", wallet_address, wallet_balance));
 
         result.write(&wallet_balance);
 
