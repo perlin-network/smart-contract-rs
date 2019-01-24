@@ -23,7 +23,9 @@ impl Contract {
         Transfer {
             destination: params.sender.clone(),
             amount: (inputs.amount + 1) / 2,
-        }.send_transaction("transfer");
+            func_name: vec![],
+            func_params: vec![],
+        }.send_transaction();
 
         None
     }

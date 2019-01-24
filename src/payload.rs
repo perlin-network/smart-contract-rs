@@ -61,21 +61,16 @@ impl Payload {
 
 // Incoming parameters for a smart contract function call.
 pub struct Parameters {
+    pub transaction_id: Vec<u8>,
     pub sender: Vec<u8>,
+    pub amount: u64,
+
     parameters: Vec<u8>,
     pos: u64,
 }
 
 impl Parameters {
     pub fn load() -> Parameters {
-        let sender_len = unsafe { crate::sys::_sender_id_len() };
-        let mut sender_bytes = Vec::with_capacity(sender_len);
-
-        unsafe {
-            sender_bytes.set_len(sender_len);
-            crate::sys::_sender_id(sender_bytes.as_mut_ptr())
-        }
-
         let payload_len = unsafe { crate::sys::_payload_len() };
         let mut payload_bytes = Vec::with_capacity(payload_len);
 
@@ -84,7 +79,19 @@ impl Parameters {
             crate::sys::_payload(payload_bytes.as_mut_ptr())
         }
 
-        Parameters { sender: sender_bytes, parameters: payload_bytes, pos: 0 }
+        let mut parameters = Parameters {
+            transaction_id: vec![],
+            sender: vec![],
+            amount: 0,
+            parameters: payload_bytes,
+            pos: 0,
+        };
+
+        parameters.transaction_id = parameters.read();
+        parameters.sender = parameters.read();
+        parameters.amount = parameters.read();
+
+        parameters
     }
 
     pub fn read<T: Sized>(&mut self) -> T {
