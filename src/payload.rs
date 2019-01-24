@@ -17,7 +17,17 @@ macro_rules! writeable {
     }
 }
 
-writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char, bool];
+writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+
+impl Writeable for bool {
+    fn write_to(&self, buffer: &mut Vec<u8>) {
+        if *self  {
+            1u8.write_to(buffer);
+        } else {
+            0u8.write_to(buffer);
+        }
+    }
+}
 
 impl Writeable for String {
     fn write_to(&self, buffer: &mut Vec<u8>) {
@@ -66,7 +76,13 @@ macro_rules! readable {
     }
 }
 
-readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char, bool];
+readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+
+impl Readable<bool> for bool {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> bool {
+        u8::read_from(buffer, pos) == 1
+    }
+}
 
 impl Readable<String> for String {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> String {
