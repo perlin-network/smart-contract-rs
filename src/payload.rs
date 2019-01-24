@@ -40,9 +40,74 @@ impl<T: Writeable> Writeable for Vec<T> {
     }
 }
 
+pub trait Readable<T: Sized> {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> T {
+        unsafe {
+            let ptr = buffer.as_ptr().offset(*pos as isize);
+
+            let size = ::std::mem::size_of::<T>();
+
+            let x = ::std::slice::from_raw_parts(ptr, size);
+            *pos += size as u64;
+
+            let mut ret: T = ::std::mem::uninitialized();
+            ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<T>());
+
+            ret
+        }
+    }
+}
+
+macro_rules! readable {
+    ( $($x:ident), *) => {
+        $(
+            impl Readable<$x> for $x {}
+        )*
+    }
+}
+
+readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char, bool];
+
+impl Readable<String> for String {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> String {
+        let mut buf = vec![];
+
+        loop {
+            let chr = char::read_from(buffer, pos);
+
+            if chr == '\0' {
+                break;
+            }
+
+            buf.push(chr);
+        }
+
+        buf.into_iter().collect()
+    }
+}
+
+impl<U: Readable<U>> Readable<Vec<U>> for Vec<U> {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Vec<U> {
+        let mut buf: Vec<U> = vec![];
+        let len = usize::read_from(buffer, pos);
+
+        for _ in 0..len {
+            buf.push( U::read_from(buffer, pos));
+        }
+
+        buf
+    }
+}
+
 // Outgoing returned results from a smart contract function call.
 pub struct Payload {
     result: Vec<u8>,
+}
+
+impl From<Vec<u8>> for Payload {
+    fn from(params: Vec<u8>) -> Self {
+        Payload { result: params }
+    }
 }
 
 impl Payload {
@@ -54,8 +119,8 @@ impl Payload {
         x.write_to(&mut self.result)
     }
 
-    pub fn serialize(self) -> Vec<u8> {
-        self.result
+    pub fn serialize(&self) -> &Vec<u8> {
+        &self.result
     }
 }
 
@@ -94,19 +159,7 @@ impl Parameters {
         parameters
     }
 
-    pub fn read<T: Sized>(&mut self) -> T {
-        unsafe {
-            let ptr = self.parameters.as_ptr().offset(self.pos as isize);
-
-            let size = ::std::mem::size_of::<T>();
-
-            let x = ::std::slice::from_raw_parts(ptr, size);
-            self.pos += size as u64;
-
-            let mut ret: T = ::std::mem::uninitialized();
-            ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<T>());
-
-            ret
-        }
+    pub fn read<T: Readable<T>>(&mut self) -> T {
+        T::read_from(&self.parameters, &mut self.pos)
     }
 }
