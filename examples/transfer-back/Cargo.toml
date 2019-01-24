@@ -2,11 +2,14 @@
 name = "transfer-back"
 version = "0.1.0"
 authors = ["losfair <zhy20000919@hotmail.com>"]
+edition = "2018"
+
+[profile.release]
+lto = true
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-smart-contract = { path = "../.." }
-serde = "1"
-serde_derive = "1"
+smart_contract = { path = "../.." }
+smart_contract_macro = { path = "../../smart-contract-macro"}

@@ -1,18 +1,30 @@
-#[macro_use]
-extern crate smart_contract;
-extern crate serde;
+//! A simple smart contract that sends half of the PERLs it receives
+//! back to its respective sender.
+//!
+//! Overall a simple example of registering a function to get called when
+//! the smart contract receives PERLs, and on how to create and send PERLs
+//! to a provided destination wallet address.
+use smart_contract::payload::{Parameters, Payload};
+use smart_contract::transaction::{Transaction, Transfer};
+use smart_contract_macro::smart_contract;
 
-use smart_contract::activation::TransferActivation;
-use smart_contract::transaction::transfer;
-use smart_contract::Reason;
+pub struct Contract;
 
-fn handle_activation() {
-    let reason: Reason<TransferActivation> = match Reason::load() {
-        Some(v) => v,
-        None => return,
-    };
+#[smart_contract]
+impl Contract {
+    fn init(_params: &mut Parameters) -> (Self, Option<Payload>) {
+        (Self{}, None)
+    }
 
-    transfer(&reason.details.sender, (reason.details.amount + 1) / 2);
+    fn on_money_received(&mut self, params: &mut Parameters) -> Option<Payload> {
+        let inputs: Transfer = params.read();
+
+        // Create and send transaction.
+        Transfer {
+            destination: params.sender.clone(),
+            amount: (inputs.amount + 1) / 2,
+        }.send_transaction("transfer");
+
+        None
+    }
 }
-
-contract_entry!(handle_activation);

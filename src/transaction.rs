@@ -1,47 +1,33 @@
-#[derive(Clone, Debug)]
-pub struct Transaction {
-    pub tag: String,
-    pub payload: Vec<u8>,
-}
+use crate::payload::Writeable;
 
-#[derive(Serialize)]
-pub struct TransferTx<'a> {
-    pub amount: u64,
-    pub recipient: &'a [u8],
-}
-
-impl Transaction {
-    pub fn new<K: Into<String>>(tag: K, payload: Vec<u8>) -> Transaction {
-        Transaction {
-            tag: tag.into(),
-            payload: payload,
-        }
-    }
-
-    pub fn new_json<K: Into<String>, T: ::serde::Serialize>(tag: K, payload: T) -> Transaction {
-        Transaction {
-            tag: tag.into(),
-            payload: ::serde_json::to_vec(&payload).unwrap(),
-        }
-    }
-
-    pub fn send(self) {
-        let tag = self.tag.as_bytes();
-        let payload = self.payload.as_slice();
+pub trait Transaction: Writeable {
+    fn send_transaction(&self, tag: &str) {
+        let mut payload = vec![];
+        self.write_to(&mut payload);
 
         unsafe {
-            ::sys::_send_transaction(tag.as_ptr(), tag.len(), payload.as_ptr(), payload.len())
-        };
+            crate::sys::_send_transaction(tag.as_ptr(), tag.len(), payload.as_ptr(), payload.len());
+        }
     }
 }
 
-pub fn transfer(recipient: &[u8], amount: u64) {
-    Transaction::new_json(
-        "transfer",
-        TransferTx {
-            amount: amount,
-            recipient: recipient,
-        },
-    )
-    .send();
+pub struct Transfer {
+    pub destination: Vec<u8>,
+    pub amount: u64,
 }
+
+pub struct Contract {
+    pub contract_id: Vec<u8>,
+    pub payload: crate::payload::Payload,
+}
+
+macro_rules! transaction {
+    ( $($x:ident), *) => {
+        $(
+            impl Writeable for $x {}
+            impl Transaction for $x {}
+        )*
+    }
+}
+
+transaction![Transfer, Contract];
