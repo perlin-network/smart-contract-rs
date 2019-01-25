@@ -6,6 +6,7 @@
 //!
 //! The tokens name in this case is WVL; feel free to change up this contract
 //! and deploy your own cryptocurrency token on Wavelet!
+use smart_contract::debug;
 use smart_contract::payload::{Parameters, Payload};
 use smart_contract_macro::smart_contract;
 use std::collections::HashMap;
@@ -21,9 +22,9 @@ impl Token {
 
         balances.insert(params.sender.clone(), 100000);
 
-        ::smart_contract::log("init called");
+        debug!(&balances);
 
-        (Self {balances}, None)
+        (Self { balances }, None)
     }
 
     fn balance(&mut self, params: &mut Parameters) -> Option<Payload> {
@@ -36,7 +37,7 @@ impl Token {
             None => 0
         };
 
-        ::smart_contract::log(&format!("address = {:?}, balance = {}", wallet_address, wallet_balance));
+        debug!(wallet_address, wallet_balance);
 
         result.write(&wallet_balance);
 
