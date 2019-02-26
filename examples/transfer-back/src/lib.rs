@@ -17,12 +17,10 @@ impl Contract {
     }
 
     fn on_money_received(&mut self, params: &mut Parameters) -> Option<Payload> {
-        let inputs: Transfer = params.read();
-
         // Create and send transaction.
         Transfer {
             destination: params.sender.clone(),
-            amount: (inputs.amount + 1) / 2,
+            amount: (params.amount + 1) / 2,
             func_name: vec![],
             func_params: vec![],
         }.send_transaction();
