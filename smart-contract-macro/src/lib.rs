@@ -104,11 +104,11 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                         "init" => {
                             match &func.decl.output {
                                 syn::ReturnType::Type(_, typ) => {
-                                    if quote!(#typ).to_string() != "( Self , Option < Payload > )" && quote!(#typ).to_string() != "( Self , Option < smart_contract :: payload :: Payload > )" {
-                                        panic!("The `init` fn need to return (Self, Option<smart_contract::payload::Payload>).")
+                                    if quote!(#typ).to_string() != "Self" && quote!(#typ).to_string() != "Self" {
+                                        panic!("The `init` fn need to return Self.")
                                     }
                                 }
-                                _ => panic!("The `init` fn need to return (Self, Option<smart_contract::payload::Payload>).")
+                                _ => panic!("The `init` fn need to return Self.")
                             }
 
                             println!("Registered smart contract init function.");
@@ -149,14 +149,7 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
 
         thread_local! {
             static SMART_CONTRACT_INSTANCE: ::std::cell::RefCell<#struct_ident> = {
-                let (contract, payload) = #struct_ident::init(&mut Parameters::load());
-
-                if let Some(result) = payload {
-                    let bytes = result.serialize();
-                    unsafe { ::smart_contract::sys::_provide_result(bytes.as_ptr(), bytes.len()); }
-                }
-
-                ::std::cell::RefCell::new(contract)
+                ::std::cell::RefCell::new(#struct_ident::init(&mut Parameters::load()))
             }
         }
     }.into();

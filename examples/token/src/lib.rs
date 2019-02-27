@@ -17,14 +17,14 @@ pub struct Token {
 
 #[smart_contract]
 impl Token {
-    fn init(params: &mut Parameters) -> (Self, Option<Payload>) {
+    fn init(params: &mut Parameters) -> Self {
         let mut balances = HashMap::new();
 
         balances.insert(params.sender.clone(), 100000);
 
         debug!(&balances);
 
-        (Self { balances }, None)
+        Self { balances }
     }
 
     fn balance(&mut self, params: &mut Parameters) -> Option<Payload> {

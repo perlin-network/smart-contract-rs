@@ -12,8 +12,8 @@ pub struct Contract;
 
 #[smart_contract]
 impl Contract {
-    fn init(_params: &mut Parameters) -> (Self, Option<Payload>) {
-        (Self{}, None)
+    fn init(_params: &mut Parameters) -> Self {
+        Self{}
     }
 
     fn on_money_received(&mut self, params: &mut Parameters) -> Option<Payload> {
