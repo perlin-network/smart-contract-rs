@@ -167,7 +167,7 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
                             SMART_CONTRACT_INSTANCE.with(|smart_contract| {
                                 if let Some(result) = smart_contract.borrow_mut().#name(&mut Parameters::load()) {
                                     let bytes = result.serialize();
-                                    unsafe { ::smart_contract::sys::_provide_result(bytes.as_ptr(), bytes.len()); }
+                                    unsafe { ::smart_contract::sys::_result(bytes.as_ptr(), bytes.len()); }
                                 }
                             });
                         }
