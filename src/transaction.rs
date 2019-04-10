@@ -1,4 +1,4 @@
-use crate::payload::{Writeable, Readable, Payload};
+use crate::payload::{Payload, Readable, Writeable};
 
 #[repr(u8)]
 pub enum TransactionTag {
@@ -23,11 +23,11 @@ pub trait Transaction: Writeable + Readable<Self> {
 }
 
 pub struct Transfer {
-    pub destination: Vec<u8>,
+    pub destination: [u8; 32],
     pub amount: u64,
 
     pub func_name: Vec<u8>,
-    pub func_params: Vec<u8>
+    pub func_params: Vec<u8>,
 }
 
 impl Writeable for Transfer {
@@ -43,11 +43,11 @@ impl Writeable for Transfer {
 impl Readable<Transfer> for Transfer {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Transfer {
         Transfer {
-            destination: Vec::<u8>::read_from(buffer, pos),
+            destination: <[u8; 32]>::read_from(buffer, pos),
             amount: u64::read_from(buffer, pos),
 
             func_name: Vec::<u8>::read_from(buffer, pos),
-            func_params: Vec::<u8>::read_from(buffer, pos)
+            func_params: Vec::<u8>::read_from(buffer, pos),
         }
     }
 }
@@ -74,7 +74,7 @@ impl Readable<Contract> for Contract {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Contract {
         Contract {
             contract_id: Vec::<u8>::read_from(buffer, pos),
-            payload: Payload::from(Vec::<u8>::read_from(buffer, pos))
+            payload: Payload::from(Vec::<u8>::read_from(buffer, pos)),
         }
     }
 }
