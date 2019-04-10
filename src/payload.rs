@@ -31,7 +31,7 @@ macro_rules! writeable_array {
     }
 }
 
-writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
 writeable_array![32];
 
 impl Writeable for bool {
@@ -47,10 +47,10 @@ impl Writeable for bool {
 impl Writeable for String {
     fn write_to(&self, buffer: &mut Vec<u8>) {
         for x in self.chars() {
-            x.write_to(buffer);
+            (x as u8).write_to(buffer);
         }
 
-        '\0'.write_to(buffer);
+        0u8.write_to(buffer);
     }
 }
 
@@ -109,7 +109,7 @@ macro_rules! readable_array {
     }
 }
 
-readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
 readable_array![32];
 
 impl Readable<bool> for bool {
@@ -120,19 +120,21 @@ impl Readable<bool> for bool {
 
 impl Readable<String> for String {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> String {
+        use std::string::String;
+
         let mut buf = vec![];
 
         loop {
-            let chr = char::read_from(buffer, pos);
+            let chr = u8::read_from(buffer, pos);
 
-            if chr == '\0' {
+            if chr == 0 {
                 break;
             }
 
             buf.push(chr);
         }
 
-        buf.into_iter().collect()
+        String::from_utf8(buf).unwrap()
     }
 }
 
