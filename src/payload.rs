@@ -1,18 +1,20 @@
 use std::io::Write;
 
 pub trait Writeable: Sized {
-    fn write_to(&self, buffer: &mut Vec<u8>) {
-        unsafe {
-            let x = ::std::slice::from_raw_parts(::std::mem::transmute(self as *const _ as *const u8), ::std::mem::size_of::<Self>());
-            buffer.write_all(x).unwrap();
-        }
-    }
+    fn write_to(&self, buffer: &mut Vec<u8>);
 }
 
 macro_rules! writeable {
     ( $($x:ident), *) => {
         $(
-            impl Writeable for $x {}
+            impl Writeable for $x {
+                fn write_to(&self, buffer: &mut Vec<u8>) {
+                    unsafe {
+                        let x = ::std::slice::from_raw_parts(::std::mem::transmute(self as *const _ as *const u8), ::std::mem::size_of::<Self>());
+                        buffer.write_all(x).unwrap();
+                    }
+                }
+            }
         )*
     }
 }
@@ -66,27 +68,29 @@ impl<T: Writeable> Writeable for Vec<T> {
 }
 
 pub trait Readable<T: Sized> {
-    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> T {
-        unsafe {
-            let ptr = buffer.as_ptr().offset(*pos as isize);
-
-            let size = ::std::mem::size_of::<T>();
-
-            let x = ::std::slice::from_raw_parts(ptr, size);
-            *pos += size as u64;
-
-            let mut ret: T = ::std::mem::uninitialized();
-            ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<T>());
-
-            ret
-        }
-    }
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> T;
 }
 
 macro_rules! readable {
     ( $($x:ident), *) => {
         $(
-            impl Readable<$x> for $x {}
+            impl Readable<$x> for $x {
+                fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> $x {
+                    unsafe {
+                        let ptr = buffer.as_ptr().offset(*pos as isize);
+
+                        let size = ::std::mem::size_of::<$x>();
+
+                        let x = ::std::slice::from_raw_parts(ptr, size);
+                        *pos += size as u64;
+
+                        let mut ret: $x = ::std::mem::uninitialized();
+                        ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<$x>());
+
+                        ret
+                    }
+                }
+            }
         )*
     }
 }
