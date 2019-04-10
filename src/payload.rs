@@ -20,21 +20,19 @@ macro_rules! writeable {
 }
 
 macro_rules! writeable_array {
-    ( $n:expr, $($x:ident), *) => {
-        $(
-            impl Writeable for [$x; $n] {
-                fn write_to(&self, buffer: &mut Vec<u8>) {
-                    for i in self {
-                        i.write_to(buffer);
-                    }
+    ( $n:expr) => {
+        impl<U: Writeable> Writeable for [U; $n] {
+            fn write_to(&self, buffer: &mut Vec<u8>) {
+                for i in self {
+                    i.write_to(buffer);
                 }
             }
-        )*
+        }
     }
 }
 
 writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
-writeable_array![32, u8];
+writeable_array![32];
 
 impl Writeable for bool {
     fn write_to(&self, buffer: &mut Vec<u8>) {
@@ -96,25 +94,23 @@ macro_rules! readable {
 }
 
 macro_rules! readable_array {
-    ( $n:expr, $($x:ident), *) => {
-        $(
-            impl Readable<[$x; $n]> for [$x; $n] {
-                fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> [$x; $n] {
-                    let mut buf: [$x; $n] = [0; $n];
+    ( $n:expr) => {
+        impl<U: Readable<U> + Copy + Default> Readable<[U; $n]> for [U; $n] {
+            fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> [U; $n] {
+                let mut buf: [U; $n] = [U::default(); $n];
 
-                    for i in 0..$n {
-                        buf[i] = $x::read_from(buffer, pos);
-                    }
-
-                    buf
+                for i in 0..$n {
+                    buf[i] = U::read_from(buffer, pos);
                 }
+
+                buf
             }
-        )*
+        }
     }
 }
 
 readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
-readable_array![32, u8];
+readable_array![32];
 
 impl Readable<bool> for bool {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> bool {
