@@ -4,8 +4,8 @@
 //! We have purposely set up the smart contract to look akin to
 //! the likes of an ERC20 Token on Ethereum.
 //!
-//! The tokens name in this case is WVL; feel free to change up this contract
-//! and deploy your own cryptocurrency token on Wavelet!
+//! Feel free to change up this contract and deploy your own
+//! cryptocurrency token on Wavelet!
 use smart_contract::debug;
 use smart_contract::payload::{Parameters, Payload};
 use smart_contract_macro::smart_contract;
@@ -28,7 +28,7 @@ impl Token {
     }
 
     fn balance(&mut self, params: &mut Parameters) -> Option<Payload> {
-        let wallet_address: Vec<u8> = params.read();
+        let wallet_address: Vec<u8> = params.read::<[u8; 32]>().to_vec();
 
         let mut result = Payload::new();
 
@@ -46,6 +46,7 @@ impl Token {
 
     fn transfer(&mut self, params: &mut Parameters) -> Option<Payload> {
         let sender: Vec<u8> = params.sender.to_vec();
+
         let recipient: Vec<u8> = params.read::<[u8; 32]>().to_vec();
         let amount: u64 = params.read();
 
