@@ -21,7 +21,22 @@ extern "C" {
         sig: *const u8, sig_len: usize
     ) -> i32;
 
+    pub fn _hash_blake2b_256(
+        data: *const u8, data_len: usize,
+        out: *mut u8, out_len: usize,
+    ) -> i32;
+
     pub fn _hash_blake2b_512(
+        data: *const u8, data_len: usize,
+        out: *mut u8, out_len: usize,
+    ) -> i32;
+
+    pub fn _hash_sha256(
+        data: *const u8, data_len: usize,
+        out: *mut u8, out_len: usize,
+    ) -> i32;
+
+    pub fn _hash_sha512(
         data: *const u8, data_len: usize,
         out: *mut u8, out_len: usize,
     ) -> i32;
