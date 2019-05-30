@@ -1,4 +1,4 @@
-use crate::payload::{Writeable, Readable, Payload};
+use crate::payload::{Readable, Writeable};
 
 #[repr(u8)]
 pub enum TransactionTag {
@@ -8,7 +8,7 @@ pub enum TransactionTag {
     Stake,
 }
 
-pub trait Transaction: Writeable + Readable<Self> {
+pub trait Transaction: Writeable + Readable {
     fn send_transaction(self) {
         let mut payload = vec![];
         self.write_to(&mut payload);
@@ -23,11 +23,11 @@ pub trait Transaction: Writeable + Readable<Self> {
 }
 
 pub struct Transfer {
-    pub destination: Vec<u8>,
+    pub destination: [u8; 32],
     pub amount: u64,
 
     pub func_name: Vec<u8>,
-    pub func_params: Vec<u8>
+    pub func_params: Vec<u8>,
 }
 
 impl Writeable for Transfer {
@@ -40,14 +40,14 @@ impl Writeable for Transfer {
     }
 }
 
-impl Readable<Transfer> for Transfer {
+impl Readable for Transfer {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Transfer {
         Transfer {
-            destination: Vec::<u8>::read_from(buffer, pos),
+            destination: <[u8; 32]>::read_from(buffer, pos),
             amount: u64::read_from(buffer, pos),
 
             func_name: Vec::<u8>::read_from(buffer, pos),
-            func_params: Vec::<u8>::read_from(buffer, pos)
+            func_params: Vec::<u8>::read_from(buffer, pos),
         }
     }
 }
@@ -59,22 +59,21 @@ impl Transaction for Transfer {
 }
 
 pub struct Contract {
-    pub contract_id: Vec<u8>,
-    pub payload: crate::payload::Payload,
+    pub code: Vec<u8>,
 }
 
 impl Writeable for Contract {
     fn write_to(&self, buffer: &mut Vec<u8>) {
-        self.contract_id.write_to(buffer);
-        self.payload.serialize().write_to(buffer);
+        buffer.append(&mut self.code.clone());
     }
 }
 
-impl Readable<Contract> for Contract {
+impl Readable for Contract {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Contract {
+        *pos = buffer.len() as u64;
+
         Contract {
-            contract_id: Vec::<u8>::read_from(buffer, pos),
-            payload: Payload::from(Vec::<u8>::read_from(buffer, pos))
+            code: buffer.clone(),
         }
     }
 }

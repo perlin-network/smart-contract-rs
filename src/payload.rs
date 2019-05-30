@@ -1,27 +1,42 @@
 use std::io::Write;
 
 pub trait Writeable: Sized {
-    fn write_to(&self, buffer: &mut Vec<u8>) {
-        unsafe {
-            let x = ::std::slice::from_raw_parts(::std::mem::transmute(self as *const _ as *const u8), ::std::mem::size_of::<Self>());
-            buffer.write_all(x).unwrap();
-        }
-    }
+    fn write_to(&self, buffer: &mut Vec<u8>);
 }
 
 macro_rules! writeable {
     ( $($x:ident), *) => {
         $(
-            impl Writeable for $x {}
+            impl Writeable for $x {
+                fn write_to(&self, buffer: &mut Vec<u8>) {
+                    unsafe {
+                        let x = ::std::slice::from_raw_parts(::std::mem::transmute(self as *const _ as *const u8), ::std::mem::size_of::<Self>());
+                        buffer.write_all(x).unwrap();
+                    }
+                }
+            }
         )*
     }
 }
 
-writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+macro_rules! writeable_array {
+    ( $n:expr) => {
+        impl<U: Writeable> Writeable for [U; $n] {
+            fn write_to(&self, buffer: &mut Vec<u8>) {
+                for i in self {
+                    i.write_to(buffer);
+                }
+            }
+        }
+    }
+}
+
+writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+writeable_array![32];
 
 impl Writeable for bool {
     fn write_to(&self, buffer: &mut Vec<u8>) {
-        if *self  {
+        if *self {
             1u8.write_to(buffer);
         } else {
             0u8.write_to(buffer);
@@ -32,10 +47,10 @@ impl Writeable for bool {
 impl Writeable for String {
     fn write_to(&self, buffer: &mut Vec<u8>) {
         for x in self.chars() {
-            x.write_to(buffer);
+            (x as u8).write_to(buffer);
         }
 
-        '\0'.write_to(buffer);
+        0u8.write_to(buffer);
     }
 }
 
@@ -50,65 +65,86 @@ impl<T: Writeable> Writeable for Vec<T> {
     }
 }
 
-pub trait Readable<T: Sized> {
-    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> T {
-        unsafe {
-            let ptr = buffer.as_ptr().offset(*pos as isize);
-
-            let size = ::std::mem::size_of::<T>();
-
-            let x = ::std::slice::from_raw_parts(ptr, size);
-            *pos += size as u64;
-
-            let mut ret: T = ::std::mem::uninitialized();
-            ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<T>());
-
-            ret
-        }
-    }
+pub trait Readable {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Self;
 }
 
 macro_rules! readable {
     ( $($x:ident), *) => {
         $(
-            impl Readable<$x> for $x {}
+            impl Readable for $x {
+                fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Self {
+                    unsafe {
+                        let ptr = buffer.as_ptr().offset(*pos as isize);
+
+                        let size = ::std::mem::size_of::<$x>();
+
+                        let x = ::std::slice::from_raw_parts(ptr, size);
+                        *pos += size as u64;
+
+                        let mut ret: $x = ::std::mem::uninitialized();
+                        ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<$x>());
+
+                        ret
+                    }
+                }
+            }
         )*
     }
 }
 
-readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64, char];
+macro_rules! readable_array {
+    ( $n:expr) => {
+        impl<U: Readable + Copy + Default> Readable for [U; $n] {
+            fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> [U; $n] {
+                let mut buf: [U; $n] = [U::default(); $n];
 
-impl Readable<bool> for bool {
+                for i in 0..$n {
+                    buf[i] = U::read_from(buffer, pos);
+                }
+
+                buf
+            }
+        }
+    }
+}
+
+readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+readable_array![32];
+
+impl Readable for bool {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> bool {
         u8::read_from(buffer, pos) == 1
     }
 }
 
-impl Readable<String> for String {
+impl Readable for String {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> String {
+        use std::string::String;
+
         let mut buf = vec![];
 
         loop {
-            let chr = char::read_from(buffer, pos);
+            let chr = u8::read_from(buffer, pos);
 
-            if chr == '\0' {
+            if chr == 0 {
                 break;
             }
 
             buf.push(chr);
         }
 
-        buf.into_iter().collect()
+        String::from_utf8(buf).unwrap()
     }
 }
 
-impl<U: Readable<U>> Readable<Vec<U>> for Vec<U> {
+impl<U: Readable> Readable for Vec<U> {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Vec<U> {
         let mut buf: Vec<U> = vec![];
         let len = usize::read_from(buffer, pos);
 
         for _ in 0..len {
-            buf.push( U::read_from(buffer, pos));
+            buf.push(U::read_from(buffer, pos));
         }
 
         buf
@@ -142,8 +178,8 @@ impl Payload {
 
 // Incoming parameters for a smart contract function call.
 pub struct Parameters {
-    pub transaction_id: Vec<u8>,
-    pub sender: Vec<u8>,
+    pub transaction_id: [u8; 32],
+    pub sender: [u8; 32],
     pub amount: u64,
 
     parameters: Vec<u8>,
@@ -161,8 +197,8 @@ impl Parameters {
         }
 
         let mut parameters = Parameters {
-            transaction_id: vec![],
-            sender: vec![],
+            transaction_id: [0; 32],
+            sender: [0; 32],
             amount: 0,
             parameters: payload_bytes,
             pos: 0,
@@ -175,7 +211,7 @@ impl Parameters {
         parameters
     }
 
-    pub fn read<T: Readable<T>>(&mut self) -> T {
+    pub fn read<T: Readable>(&mut self) -> T {
         T::read_from(&self.parameters, &mut self.pos)
     }
 }

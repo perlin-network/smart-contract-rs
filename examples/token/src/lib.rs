@@ -4,8 +4,8 @@
 //! We have purposely set up the smart contract to look akin to
 //! the likes of an ERC20 Token on Ethereum.
 //!
-//! The tokens name in this case is WVL; feel free to change up this contract
-//! and deploy your own cryptocurrency token on Wavelet!
+//! Feel free to change up this contract and deploy your own
+//! cryptocurrency token on Wavelet!
 use smart_contract::debug;
 use smart_contract::payload::{Parameters, Payload};
 use smart_contract_macro::smart_contract;
@@ -20,7 +20,7 @@ impl Token {
     fn init(params: &mut Parameters) -> Self {
         let mut balances = HashMap::new();
 
-        balances.insert(params.sender.clone(), 100000);
+        balances.insert(params.sender.to_vec(), 100000);
 
         debug!(&balances);
 
@@ -28,7 +28,7 @@ impl Token {
     }
 
     fn balance(&mut self, params: &mut Parameters) -> Option<Payload> {
-        let wallet_address: Vec<u8> = params.read();
+        let wallet_address: Vec<u8> = params.read::<[u8; 32]>().to_vec();
 
         let mut result = Payload::new();
 
@@ -45,12 +45,14 @@ impl Token {
     }
 
     fn transfer(&mut self, params: &mut Parameters) -> Option<Payload> {
-        let recipient: Vec<u8> = params.read();
+        let sender: Vec<u8> = params.sender.to_vec();
+
+        let recipient: Vec<u8> = params.read::<[u8; 32]>().to_vec();
         let amount: u64 = params.read();
 
         let mut result = Payload::new();
 
-        let sender_balance = match self.balances.get(&params.sender) {
+        let sender_balance = match self.balances.get(&sender) {
             Some(balance) => *balance,
             None => 0
         };
@@ -67,7 +69,7 @@ impl Token {
         };
 
         // Modify balances.
-        self.balances.insert(params.sender.clone(), sender_balance - amount);
+        self.balances.insert(sender, sender_balance - amount);
         self.balances.insert(recipient, recipient_balance + amount);
 
         // Return `true` to the sender that the transfer was successful.
