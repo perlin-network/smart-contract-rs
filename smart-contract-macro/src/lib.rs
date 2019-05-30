@@ -110,8 +110,6 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                                 }
                                 _ => panic!("The `init` fn need to return Self.")
                             }
-
-                            println!("Registered smart contract init function.");
                         },
                         _ => {
                             match &func.decl.output {
@@ -122,8 +120,6 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                                 }
                                 _ => panic!("Smart contract functions need to return Option<smart_contract::payload::Payload>.")
                             }
-
-                            println!("Registered smart contract function: {}", name);
                         }
                     }
 
