@@ -11,5 +11,5 @@ lto = true
 crate-type = ["cdylib"]
 
 [dependencies]
-smart_contract = { path = "../.." }
+smart_contract = { path = "../../smart-contract" }
 smart_contract_macro = { path = "../../smart-contract-macro"}
