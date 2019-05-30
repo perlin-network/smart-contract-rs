@@ -8,7 +8,7 @@ pub enum TransactionTag {
     Stake,
 }
 
-pub trait Transaction: Writeable + Readable<Self> {
+pub trait Transaction: Writeable + Readable {
     fn send_transaction(self) {
         let mut payload = vec![];
         self.write_to(&mut payload);
@@ -40,7 +40,7 @@ impl Writeable for Transfer {
     }
 }
 
-impl Readable<Transfer> for Transfer {
+impl Readable for Transfer {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Transfer {
         Transfer {
             destination: <[u8; 32]>::read_from(buffer, pos),
@@ -68,7 +68,7 @@ impl Writeable for Contract {
     }
 }
 
-impl Readable<Contract> for Contract {
+impl Readable for Contract {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Contract {
         *pos = buffer.len() as u64;
 

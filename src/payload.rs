@@ -65,15 +65,15 @@ impl<T: Writeable> Writeable for Vec<T> {
     }
 }
 
-pub trait Readable<T: Sized> {
-    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> T;
+pub trait Readable {
+    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Self;
 }
 
 macro_rules! readable {
     ( $($x:ident), *) => {
         $(
-            impl Readable<$x> for $x {
-                fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> $x {
+            impl Readable for $x {
+                fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Self {
                     unsafe {
                         let ptr = buffer.as_ptr().offset(*pos as isize);
 
@@ -95,7 +95,7 @@ macro_rules! readable {
 
 macro_rules! readable_array {
     ( $n:expr) => {
-        impl<U: Readable<U> + Copy + Default> Readable<[U; $n]> for [U; $n] {
+        impl<U: Readable + Copy + Default> Readable for [U; $n] {
             fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> [U; $n] {
                 let mut buf: [U; $n] = [U::default(); $n];
 
@@ -112,13 +112,13 @@ macro_rules! readable_array {
 readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
 readable_array![32];
 
-impl Readable<bool> for bool {
+impl Readable for bool {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> bool {
         u8::read_from(buffer, pos) == 1
     }
 }
 
-impl Readable<String> for String {
+impl Readable for String {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> String {
         use std::string::String;
 
@@ -138,7 +138,7 @@ impl Readable<String> for String {
     }
 }
 
-impl<U: Readable<U>> Readable<Vec<U>> for Vec<U> {
+impl<U: Readable> Readable for Vec<U> {
     fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Vec<U> {
         let mut buf: Vec<U> = vec![];
         let len = usize::read_from(buffer, pos);
@@ -211,7 +211,7 @@ impl Parameters {
         parameters
     }
 
-    pub fn read<T: Readable<T>>(&mut self) -> T {
+    pub fn read<T: Readable>(&mut self) -> T {
         T::read_from(&self.parameters, &mut self.pos)
     }
 }
