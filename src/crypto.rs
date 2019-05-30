@@ -1,5 +1,55 @@
-extern "C" {
-    pub fn _sign_ed25519(key: *const u8, key_len: usize, msg: *const u8, msg_len: usize, sign_out: *mut u8) -> usize;
-    pub fn _verify_ed25519(pubkey: *const u8, pubkey_len: usize, msg: *const u8, msg_len: usize, sign: *const u8, sign_len: usize) -> usize;
-    pub fn _hash_blake2b_256(data: *const u8, data_len: usize, hash_out: *mut u8);
+#[derive(Copy, Clone, Debug)]
+pub enum SignatureAlgorithm {
+    Ed25519,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum HashAlgorithm {
+    Blake2b512
+}
+
+pub const BLAKE2B512_OUTPUT_SIZE: usize = 64;
+pub const ROUND_ID_SIZE: usize = 32;
+
+pub fn round_id() -> [u8; ROUND_ID_SIZE] {
+    unsafe {
+        let mut ret: [u8; ROUND_ID_SIZE] = ::std::mem::uninitialized();
+        match crate::sys::_round_id(ret.as_mut_ptr(), ROUND_ID_SIZE) {
+            0 => ret,
+            _ => unreachable!(),
+        }
+    }
+}
+
+pub fn verify(alg: SignatureAlgorithm, pubkey: &[u8], data: &[u8], sig: &[u8]) -> Result<(), ()> {
+    match alg {
+        SignatureAlgorithm::Ed25519 => {
+            unsafe {
+                match crate::sys::_verify_ed25519(
+                    pubkey.as_ptr(), pubkey.len(),
+                    data.as_ptr(), data.len(),
+                    sig.as_ptr(), sig.len(),
+                ) {
+                    0 => Ok(()),
+                    _ => Err(()),
+                }
+            }
+        }
+    }
+}
+
+pub fn hash(alg: HashAlgorithm, data: &[u8], out: &mut [u8]) -> Result<(), ()> {
+    match alg {
+        HashAlgorithm::Blake2b512 => {
+            unsafe {
+                match crate::sys::_hash_blake2b_512(
+                    data.as_ptr(), data.len(),
+                    out.as_mut_ptr(), out.len(),
+                ) {
+                    0 => Ok(()),
+                    _ => Err(()),
+                }
+            }
+        }
+    }
 }

@@ -3,6 +3,7 @@ use std::fmt::{Debug, Formatter, Result};
 pub mod payload;
 pub mod sys;
 pub mod transaction;
+pub mod crypto;
 
 pub fn log(msg: &str) {
     unsafe {
