@@ -1,9 +1,9 @@
 use std::fmt::{Debug, Formatter, Result};
 
+pub mod crypto;
 pub mod payload;
 pub mod sys;
 pub mod transaction;
-pub mod crypto;
 
 pub fn log(msg: &str) {
     unsafe {
@@ -17,7 +17,9 @@ pub fn log(msg: &str) {
 pub struct WrapDebug<T>(pub T);
 
 impl<T: Debug> Debug for WrapDebug<T> {
-    fn fmt(&self, f: &mut Formatter) -> Result { self.0.fmt(f) }
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        self.0.fmt(f)
+    }
 }
 
 #[macro_export]

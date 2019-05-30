@@ -1,10 +1,10 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
 extern crate proc_macro;
 
 use quote::quote;
-use syn::File;
 use syn::visit::Visit;
+use syn::File;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
@@ -18,11 +18,17 @@ struct ContractVisitor {
 
 impl ContractVisitor {
     fn new() -> Self {
-        Self { struct_ident: None, method_idents: vec![] }
+        Self {
+            struct_ident: None,
+            method_idents: vec![],
+        }
     }
 }
 
-fn ensure_input_params(func_name: &str, inputs: &syn::punctuated::Punctuated<syn::FnArg, syn::Token![,]>) {
+fn ensure_input_params(
+    func_name: &str,
+    inputs: &syn::punctuated::Punctuated<syn::FnArg, syn::Token![,]>,
+) {
     match func_name {
         "init" => {
             let init_input_error = "The `init` fn must only have 1 parameter: &mut smart_contract::payload::Parameters.";
@@ -32,19 +38,21 @@ fn ensure_input_params(func_name: &str, inputs: &syn::punctuated::Punctuated<syn
             }
 
             match &inputs[0] {
-                syn::FnArg::Captured(capture) => {
-                    match &capture.ty {
-                        syn::Type::Reference(tref) => {
-                            let elem = &tref.elem;
+                syn::FnArg::Captured(capture) => match &capture.ty {
+                    syn::Type::Reference(tref) => {
+                        let elem = &tref.elem;
 
-                            if tref.mutability.is_none() || (quote!(#elem).to_string() != "Parameters" && quote!(#elem).to_string() != "smart_contract :: payload :: Parameters") {
-                                panic!(init_input_error);
-                            }
+                        if tref.mutability.is_none()
+                            || (quote!(#elem).to_string() != "Parameters"
+                                && quote!(#elem).to_string()
+                                    != "smart_contract :: payload :: Parameters")
+                        {
+                            panic!(init_input_error);
                         }
-                        _ => panic!(init_input_error)
                     }
-                }
-                _ => panic!(init_input_error)
+                    _ => panic!(init_input_error),
+                },
+                _ => panic!(init_input_error),
             }
         }
         _ => {
@@ -52,33 +60,36 @@ fn ensure_input_params(func_name: &str, inputs: &syn::punctuated::Punctuated<syn
                 panic!("All smart contract functions need to have a single parameter of type &mut smart_contract::payload::Parameters.");
             }
 
-            let first_param_error = "The first parameter of a smart contract function must be &mut self.";
+            let first_param_error =
+                "The first parameter of a smart contract function must be &mut self.";
 
             match &inputs[0] {
                 syn::FnArg::SelfRef(self_ref) => {
                     if self_ref.mutability.is_none() {
                         panic!(first_param_error);
                     }
-                },
-                _ => panic!(first_param_error)
+                }
+                _ => panic!(first_param_error),
             }
 
             let second_param_error = "The second parameter of a smart contract function must be &mut smart_contract::payload::Parameters.";
 
             match &inputs[1] {
-                syn::FnArg::Captured(capture) => {
-                    match &capture.ty {
-                        syn::Type::Reference(tref) => {
-                            let elem = &tref.elem;
+                syn::FnArg::Captured(capture) => match &capture.ty {
+                    syn::Type::Reference(tref) => {
+                        let elem = &tref.elem;
 
-                            if tref.mutability.is_none() || (quote!(#elem).to_string() != "Parameters" && quote!(#elem).to_string() != "smart_contract :: payload :: Parameters") {
-                                panic!(second_param_error);
-                            }
+                        if tref.mutability.is_none()
+                            || (quote!(#elem).to_string() != "Parameters"
+                                && quote!(#elem).to_string()
+                                    != "smart_contract :: payload :: Parameters")
+                        {
+                            panic!(second_param_error);
                         }
-                        _ => panic!(second_param_error)
                     }
-                }
-                _ => panic!(second_param_error)
+                    _ => panic!(second_param_error),
+                },
+                _ => panic!(second_param_error),
             }
         }
     }
@@ -87,7 +98,10 @@ fn ensure_input_params(func_name: &str, inputs: &syn::punctuated::Punctuated<syn
 impl<'ast> Visit<'ast> for ContractVisitor {
     fn visit_item_impl(&mut self, i: &'ast ItemImpl) {
         let struct_ident = &i.self_ty;
-        self.struct_ident = Some(syn::Ident::new(&quote!(#struct_ident).to_string(), Span::call_site()));
+        self.struct_ident = Some(syn::Ident::new(
+            &quote!(#struct_ident).to_string(),
+            Span::call_site(),
+        ));
 
         for item in &i.items {
             match item {
@@ -125,7 +139,7 @@ impl<'ast> Visit<'ast> for ContractVisitor {
 
                     self.method_idents.push(name.clone());
                 }
-                _ => continue
+                _ => continue,
             }
         }
     }
@@ -138,7 +152,9 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
     let mut visitor = ContractVisitor::new();
     visitor.visit_file(&syntax);
 
-    let struct_ident = visitor.struct_ident.unwrap_or_else(|| panic!("You should only tag #[smart_contract] to impl blocks!"));
+    let struct_ident = visitor
+        .struct_ident
+        .unwrap_or_else(|| panic!("You should only tag #[smart_contract] to impl blocks!"));
 
     let mut tokens: TokenStream = quote! {
         #syntax
@@ -148,7 +164,8 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
                 ::std::cell::RefCell::new(#struct_ident::init(&mut Parameters::load()))
             }
         }
-    }.into();
+    }
+    .into();
 
     for name in visitor.method_idents {
         let raw_name = syn::Ident::new(&format!("_contract_{}", name.to_string()), name.span());

@@ -3,4 +3,5 @@ members = [
 	"smart-contract",
 	"smart-contract-macro",
 	"examples/token",
+	"examples/nft",
 ]

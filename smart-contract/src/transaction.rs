@@ -18,7 +18,6 @@ pub trait Transaction: Writeable + Readable {
         }
     }
 
-    #[inline]
     fn tag(&self) -> TransactionTag;
 }
 
@@ -41,7 +40,7 @@ impl Writeable for Transfer {
 }
 
 impl Readable for Transfer {
-    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Transfer {
+    fn read_from(buffer: &[u8], pos: &mut u64) -> Transfer {
         Transfer {
             destination: <[u8; 32]>::read_from(buffer, pos),
             amount: u64::read_from(buffer, pos),
@@ -69,11 +68,11 @@ impl Writeable for Contract {
 }
 
 impl Readable for Contract {
-    fn read_from(buffer: &Vec<u8>, pos: &mut u64) -> Contract {
+    fn read_from(buffer: &[u8], pos: &mut u64) -> Contract {
         *pos = buffer.len() as u64;
 
         Contract {
-            code: buffer.clone(),
+            code: buffer.to_vec(),
         }
     }
 }

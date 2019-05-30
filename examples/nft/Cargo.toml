@@ -1,0 +1,15 @@
+[package]
+name = "nft"
+version = "0.1.0"
+authors = ["Abby <abbychau@gmail.com>"]
+edition = "2018"
+
+[profile.release]
+lto = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+smart_contract = { path = "../../smart-contract" }
+smart_contract_macro = { path = "../../smart-contract-macro"}

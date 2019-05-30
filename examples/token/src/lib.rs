@@ -20,7 +20,7 @@ impl Token {
     fn init(params: &mut Parameters) -> Self {
         let mut balances = HashMap::new();
 
-        balances.insert(params.sender.to_vec(), 100000);
+        balances.insert(params.sender.to_vec(), 100_000);
 
         debug!(&balances);
 
@@ -34,7 +34,7 @@ impl Token {
 
         let wallet_balance = match self.balances.get(&wallet_address) {
             Some(balance) => *balance,
-            None => 0
+            None => 0,
         };
 
         debug!(wallet_address, wallet_balance);
@@ -54,7 +54,7 @@ impl Token {
 
         let sender_balance = match self.balances.get(&sender) {
             Some(balance) => *balance,
-            None => 0
+            None => 0,
         };
 
         // Throw an error if the sender does not have enough balance.
@@ -65,7 +65,7 @@ impl Token {
 
         let recipient_balance = match self.balances.get(&recipient) {
             Some(balance) => *balance,
-            None => 0
+            None => 0,
         };
 
         // Modify balances.
@@ -74,6 +74,6 @@ impl Token {
 
         // Return `true` to the sender that the transfer was successful.
         result.write(&true);
-        return Some(result);
+        Some(result)
     }
 }
