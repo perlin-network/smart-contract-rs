@@ -31,7 +31,7 @@ macro_rules! writeable_array {
     };
 }
 
-writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+writeable![usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64];
 writeable_array![32];
 
 impl Writeable for bool {
@@ -108,7 +108,7 @@ macro_rules! readable_array {
     };
 }
 
-readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+readable![usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64];
 readable_array![32];
 
 impl Readable for bool {
