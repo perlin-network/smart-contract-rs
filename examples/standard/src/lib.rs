@@ -1,8 +1,6 @@
 //! A dummy base smart contract for extension
-use smart_contract::payload::{Parameters, Payload};
-use smart_contract::transaction::{Transaction, Transfer};
+use smart_contract::payload::{Parameters};
 use smart_contract_macro::smart_contract;
-use std::time::SystemTime;
 use std::collections::HashMap;
 
 #[derive(Default)]
