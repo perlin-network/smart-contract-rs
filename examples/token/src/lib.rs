@@ -14,7 +14,7 @@ use smart_contract::payload::Parameters;
 use smart_contract_macro::smart_contract;
 
 pub struct Token {
-    balances: HashMap<Vec<u8>, u64>,
+    balances: HashMap<[u8; 32], u64>,
 }
 
 #[smart_contract]
@@ -22,7 +22,7 @@ impl Token {
     fn init(params: &mut Parameters) -> Self {
         let mut balances = HashMap::new();
 
-        balances.insert(params.sender.to_vec(), 100_000);
+        balances.insert(params.sender, 100_000);
 
         debug!(&balances);
 
@@ -30,7 +30,7 @@ impl Token {
     }
 
     fn balance(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
-        let wallet_address: Vec<u8> = params.read::<[u8; 32]>().to_vec();
+        let wallet_address: [u8; 32] = params.read();
 
         let wallet_balance = match self.balances.get(&wallet_address) {
             Some(balance) => *balance,
@@ -43,9 +43,9 @@ impl Token {
     }
 
     fn transfer(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
-        let sender: Vec<u8> = params.sender.to_vec();
+        let sender = params.sender;
 
-        let recipient: Vec<u8> = params.read::<[u8; 32]>().to_vec();
+        let recipient: [u8; 32] = params.read();
         let amount: u64 = params.read();
 
         let sender_balance = match self.balances.get(&sender) {
