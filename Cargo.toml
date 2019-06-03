@@ -2,6 +2,9 @@
 members = [
 	"smart-contract",
 	"smart-contract-macro",
+	"examples/transfer-back",
 	"examples/token",
+	"examples/standard",
+	"examples/derived_standard",
 	"examples/nft",
 ]

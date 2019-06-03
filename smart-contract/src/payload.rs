@@ -31,7 +31,7 @@ macro_rules! writeable_array {
     };
 }
 
-writeable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+writeable![usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64];
 writeable_array![32];
 
 impl Writeable for bool {
@@ -108,7 +108,7 @@ macro_rules! readable_array {
     };
 }
 
-readable![usize, u8, u16, u32, u64, isize, i8, i16, i32, i64, f32, f64];
+readable![usize, u8, u16, u32, u64, u128, isize, i8, i16, i32, i64, i128, f32, f64];
 readable_array![32];
 
 impl Readable for bool {
@@ -145,32 +145,6 @@ impl<U: Readable> Readable for Vec<U> {
         }
 
         buf
-    }
-}
-
-// Outgoing returned results from a smart contract function call.
-#[derive(Default)]
-pub struct Payload {
-    result: Vec<u8>,
-}
-
-impl From<Vec<u8>> for Payload {
-    fn from(params: Vec<u8>) -> Self {
-        Payload { result: params }
-    }
-}
-
-impl Payload {
-    pub fn new() -> Payload {
-        Payload { result: vec![] }
-    }
-
-    pub fn write<T: Writeable>(&mut self, x: &T) {
-        x.write_to(&mut self.result)
-    }
-
-    pub fn serialize(&self) -> &[u8] {
-        &self.result
     }
 }
 
