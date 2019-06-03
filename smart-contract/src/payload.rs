@@ -148,32 +148,6 @@ impl<U: Readable> Readable for Vec<U> {
     }
 }
 
-// Outgoing returned results from a smart contract function call.
-#[derive(Default)]
-pub struct Payload {
-    result: Vec<u8>,
-}
-
-impl From<Vec<u8>> for Payload {
-    fn from(params: Vec<u8>) -> Self {
-        Payload { result: params }
-    }
-}
-
-impl Payload {
-    pub fn new() -> Payload {
-        Payload { result: vec![] }
-    }
-
-    pub fn write<T: Writeable>(&mut self, x: &T) {
-        x.write_to(&mut self.result)
-    }
-
-    pub fn serialize(&self) -> &[u8] {
-        &self.result
-    }
-}
-
 // Incoming parameters for a smart contract function call.
 #[derive(Default)]
 pub struct Parameters {

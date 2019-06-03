@@ -4,7 +4,9 @@
 //! Overall a simple example of registering a function to get called when
 //! the smart contract receives PERLs, and on how to create and send PERLs
 //! to a provided destination wallet address.
-use smart_contract::payload::{Parameters, Payload};
+use std::error::Error;
+
+use smart_contract::payload::Parameters;
 use smart_contract::transaction::{Transaction, Transfer};
 use smart_contract_macro::smart_contract;
 
@@ -13,10 +15,10 @@ pub struct Contract;
 #[smart_contract]
 impl Contract {
     fn init(_params: &mut Parameters) -> Self {
-        Self{}
+        Self {}
     }
 
-    fn on_money_received(&mut self, params: &mut Parameters) -> Option<Payload> {
+    fn on_money_received(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         // Create and send transaction.
         Transfer {
             destination: params.sender.clone(),
@@ -25,6 +27,6 @@ impl Contract {
             func_params: vec![],
         }.send_transaction();
 
-        None
+        Ok(())
     }
 }

@@ -2,13 +2,13 @@
 
 extern crate proc_macro;
 
-use quote::quote;
-use syn::visit::Visit;
-use syn::File;
-
 use proc_macro::TokenStream;
+
 use proc_macro2::Span;
+use quote::quote;
+use syn::File;
 use syn::ItemImpl;
+use syn::visit::Visit;
 
 #[derive(Debug)]
 struct ContractVisitor {
@@ -44,8 +44,8 @@ fn ensure_input_params(
 
                         if tref.mutability.is_none()
                             || (quote!(#elem).to_string() != "Parameters"
-                                && quote!(#elem).to_string()
-                                    != "smart_contract :: payload :: Parameters")
+                            && quote!(#elem).to_string()
+                            != "smart_contract :: payload :: Parameters")
                         {
                             panic!(init_input_error);
                         }
@@ -81,8 +81,8 @@ fn ensure_input_params(
 
                         if tref.mutability.is_none()
                             || (quote!(#elem).to_string() != "Parameters"
-                                && quote!(#elem).to_string()
-                                    != "smart_contract :: payload :: Parameters")
+                            && quote!(#elem).to_string()
+                            != "smart_contract :: payload :: Parameters")
                         {
                             panic!(second_param_error);
                         }
@@ -124,15 +124,15 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                                 }
                                 _ => panic!("The `init` fn need to return Self.")
                             }
-                        },
+                        }
                         _ => {
                             match &func.decl.output {
                                 syn::ReturnType::Type(_, typ) => {
-                                    if quote!(#typ).to_string() != "Option < Payload >" && quote!(#typ).to_string() != "Option < smart_contract :: payload :: Payload >" {
-                                        panic!("Smart contract functions need to return Option<smart_contract::payload::Payload>.")
+                                    if quote!(#typ).to_string() != "Result < (  ) , Box < dyn Error > >" && quote!(#typ).to_string() != "Result < (  ) , Box < dyn std :: error :: Error > >" {
+                                        panic!("Smart contract functions need to return Result<(), Box<std::error::Error>>.")
                                     }
                                 }
-                                _ => panic!("Smart contract functions need to return Option<smart_contract::payload::Payload>.")
+                                _ => panic!("Smart contract functions need to return Result<(), Box<std::error::Error>>.")
                             }
                         }
                     }
@@ -165,22 +165,22 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
     }
-    .into();
+        .into();
 
     for name in visitor.method_idents {
         let raw_name = syn::Ident::new(&format!("_contract_{}", name.to_string()), name.span());
 
         let raw_func =
             match name.to_string().as_str() {
-                "init" => { quote!() },
+                "init" => { quote!() }
                 _ => {
                     quote! {
                         #[no_mangle]
                         pub extern "C" fn #raw_name() {
                             SMART_CONTRACT_INSTANCE.with(|smart_contract| {
-                                if let Some(result) = smart_contract.borrow_mut().#name(&mut Parameters::load()) {
-                                    let bytes = result.serialize();
-                                    unsafe { ::smart_contract::sys::_result(bytes.as_ptr(), bytes.len()); }
+                                if let Err(err) = smart_contract.borrow_mut().#name(&mut Parameters::load()) {
+                                    let msg = err.to_string();
+                                    unsafe { ::smart_contract::sys::_result(msg.as_ptr(), msg.len()); }
                                 }
                             });
                         }

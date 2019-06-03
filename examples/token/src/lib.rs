@@ -6,10 +6,12 @@
 //!
 //! Feel free to change up this contract and deploy your own
 //! cryptocurrency token on Wavelet!
-use smart_contract::debug;
-use smart_contract::payload::{Parameters, Payload};
-use smart_contract_macro::smart_contract;
 use std::collections::HashMap;
+use std::error::Error;
+
+use smart_contract::debug;
+use smart_contract::payload::Parameters;
+use smart_contract_macro::smart_contract;
 
 pub struct Token {
     balances: HashMap<Vec<u8>, u64>,
@@ -27,10 +29,8 @@ impl Token {
         Self { balances }
     }
 
-    fn balance(&mut self, params: &mut Parameters) -> Option<Payload> {
+    fn balance(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         let wallet_address: Vec<u8> = params.read::<[u8; 32]>().to_vec();
-
-        let mut result = Payload::new();
 
         let wallet_balance = match self.balances.get(&wallet_address) {
             Some(balance) => *balance,
@@ -39,18 +39,14 @@ impl Token {
 
         debug!(wallet_address, wallet_balance);
 
-        result.write(&wallet_balance);
-
-        Some(result)
+        Ok(())
     }
 
-    fn transfer(&mut self, params: &mut Parameters) -> Option<Payload> {
+    fn transfer(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         let sender: Vec<u8> = params.sender.to_vec();
 
         let recipient: Vec<u8> = params.read::<[u8; 32]>().to_vec();
         let amount: u64 = params.read();
-
-        let mut result = Payload::new();
 
         let sender_balance = match self.balances.get(&sender) {
             Some(balance) => *balance,
@@ -59,8 +55,7 @@ impl Token {
 
         // Throw an error if the sender does not have enough balance.
         if sender_balance < amount {
-            result.write(&false);
-            return Some(result);
+            return Err("Sender does not have enough balance.".into());
         }
 
         let recipient_balance = match self.balances.get(&recipient) {
@@ -72,8 +67,6 @@ impl Token {
         self.balances.insert(sender, sender_balance - amount);
         self.balances.insert(recipient, recipient_balance + amount);
 
-        // Return `true` to the sender that the transfer was successful.
-        result.write(&true);
-        Some(result)
+        Ok(())
     }
 }
