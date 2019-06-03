@@ -6,9 +6,9 @@ use proc_macro::TokenStream;
 
 use proc_macro2::Span;
 use quote::quote;
+use syn::visit::Visit;
 use syn::File;
 use syn::ItemImpl;
-use syn::visit::Visit;
 
 #[derive(Debug)]
 struct ContractVisitor {
@@ -44,8 +44,8 @@ fn ensure_input_params(
 
                         if tref.mutability.is_none()
                             || (quote!(#elem).to_string() != "Parameters"
-                            && quote!(#elem).to_string()
-                            != "smart_contract :: payload :: Parameters")
+                                && quote!(#elem).to_string()
+                                    != "smart_contract :: payload :: Parameters")
                         {
                             panic!(init_input_error);
                         }
@@ -81,8 +81,8 @@ fn ensure_input_params(
 
                         if tref.mutability.is_none()
                             || (quote!(#elem).to_string() != "Parameters"
-                            && quote!(#elem).to_string()
-                            != "smart_contract :: payload :: Parameters")
+                                && quote!(#elem).to_string()
+                                    != "smart_contract :: payload :: Parameters")
                         {
                             panic!(second_param_error);
                         }
@@ -165,7 +165,7 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
     }
-        .into();
+    .into();
 
     for name in visitor.method_idents {
         let raw_name = syn::Ident::new(&format!("_contract_{}", name.to_string()), name.span());

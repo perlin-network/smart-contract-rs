@@ -21,11 +21,12 @@ impl Contract {
     fn on_money_received(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         // Create and send transaction.
         Transfer {
-            destination: params.sender.clone(),
+            destination: params.sender,
             amount: (params.amount + 1) / 2,
             func_name: vec![],
             func_params: vec![],
-        }.send_transaction();
+        }
+        .send_transaction();
 
         Ok(())
     }
