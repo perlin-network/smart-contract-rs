@@ -1,22 +1,37 @@
-//! A sample token smart contract that extends the base smart
-//! contract in `examples/standard` to reward tokens to users
-//! who call the `lucky_draw()` function with a transaction ID
-//! that has its last bit to be 0.
+//! A sample token smart contract that extends a base smart contract
+//! to reward tokens to users who call the `lucky_draw()` function
+//! with a transaction ID that has its last bit to be 0.
 
-use smart_contract::payload::Parameters;
-use smart_contract_macro::smart_contract;
-use standard::Contract;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-pub struct Contract2(Contract, u64);
+use smart_contract::payload::Parameters;
+use smart_contract_macro::smart_contract;
+
+pub struct Contract {
+    pub balances: HashMap<[u8; 32], u64>,
+}
+
+impl Contract {
+    pub fn init(params: &mut Parameters) -> Self {
+        let mut balances = HashMap::new();
+        balances.insert(params.sender, 100_000);
+        Self { balances }
+    }
+}
+
+
+pub struct LuckyDraw(Contract, u64);
 
 #[derive(Debug, Clone)]
 enum LuckyDrawError {
     AmountTooHigh,
     CustomError(String),
 }
+
 impl Error for LuckyDrawError {}
+
 impl fmt::Display for LuckyDrawError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -27,9 +42,9 @@ impl fmt::Display for LuckyDrawError {
 }
 
 #[smart_contract]
-impl Contract2 {
+impl LuckyDraw {
     fn init(params: &mut Parameters) -> Self {
-        Contract2(Contract::init(params), 0)
+        LuckyDraw(Contract::init(params), 0)
     }
 
     fn lucky_draw(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {

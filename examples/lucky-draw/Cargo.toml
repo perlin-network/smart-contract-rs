@@ -1,5 +1,5 @@
 [package]
-name = "derived_standard"
+name = "lucky-draw"
 version = "0.1.0"
 authors = ["Abby <abbychau@gmail.com>"]
 edition = "2018"
@@ -13,4 +13,3 @@ crate-type = ["cdylib"]
 [dependencies]
 smart_contract = { path = "../../smart-contract" }
 smart_contract_macro = { path = "../../smart-contract-macro"}
-standard = {path = "../standard"}
