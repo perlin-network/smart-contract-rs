@@ -15,17 +15,6 @@ pub const BLAKE2B256_OUTPUT_SIZE: usize = 32;
 pub const BLAKE2B512_OUTPUT_SIZE: usize = 64;
 pub const SHA256_OUTPUT_SIZE: usize = 32;
 pub const SHA512_OUTPUT_SIZE: usize = 64;
-pub const ROUND_ID_SIZE: usize = 32;
-
-pub fn round_id() -> [u8; ROUND_ID_SIZE] {
-    unsafe {
-        let mut ret: [u8; ROUND_ID_SIZE] = ::std::mem::uninitialized();
-        match crate::sys::_round_id(ret.as_mut_ptr(), ROUND_ID_SIZE) {
-            0 => ret,
-            _ => unreachable!(),
-        }
-    }
-}
 
 pub fn verify(alg: SignatureAlgorithm, pubkey: &[u8], data: &[u8], sig: &[u8]) -> Result<(), ()> {
     match alg {

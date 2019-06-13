@@ -151,6 +151,8 @@ impl<U: Readable> Readable for Vec<U> {
 // Incoming parameters for a smart contract function call.
 #[derive(Default)]
 pub struct Parameters {
+    pub round_idx: u64,
+    pub round_id: [u8; 32],
     pub transaction_id: [u8; 32],
     pub sender: [u8; 32],
     pub amount: u64, // can be extended or removed
@@ -169,14 +171,11 @@ impl Parameters {
             crate::sys::_payload(payload_bytes.as_mut_ptr())
         }
 
-        let mut parameters = Parameters {
-            transaction_id: [0; 32],
-            sender: [0; 32],
-            amount: 0,
-            parameters: payload_bytes,
-            pos: 0,
-        };
+        let mut parameters = Parameters::default();
+        parameters.parameters = payload_bytes;
 
+        parameters.round_idx = parameters.read();
+        parameters.round_id = parameters.read();
         parameters.transaction_id = parameters.read();
         parameters.sender = parameters.read();
         parameters.amount = parameters.read();

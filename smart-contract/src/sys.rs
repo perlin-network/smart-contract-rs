@@ -7,8 +7,6 @@ extern "C" {
 
     pub fn _send_transaction(tag: u8, payload: *const u8, payload_len: usize);
 
-    pub fn _round_id(out: *mut u8, out_len: usize) -> i32;
-
     pub fn _verify_ed25519(
         pubkey: *const u8,
         pubkey_len: usize,
