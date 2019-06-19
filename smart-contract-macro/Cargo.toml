@@ -3,6 +3,8 @@ name = "smart_contract_macro"
 version = "0.1.0"
 authors = ["Kenta Iwasaki <kenta@perlin.net>"]
 edition = "2018"
+description = "Procedual macros for writing smart contracts for wavelet."
+license = "MIT"
 
 [lib]
 proc-macro = true
