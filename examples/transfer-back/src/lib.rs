@@ -8,7 +8,7 @@ use std::error::Error;
 
 use smart_contract::payload::Parameters;
 use smart_contract::transaction::{Transaction, Transfer};
-use smart_contract_macro::smart_contract;
+use smart_contract_macros::smart_contract;
 
 pub struct Contract;
 

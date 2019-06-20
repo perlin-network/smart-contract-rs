@@ -11,7 +11,7 @@ use std::error::Error;
 
 use smart_contract::debug;
 use smart_contract::payload::Parameters;
-use smart_contract_macro::smart_contract;
+use smart_contract_macros::smart_contract;
 
 pub struct Token {
     balances: HashMap<[u8; 32], u64>,

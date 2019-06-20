@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use smart_contract::payload::Parameters;
-use smart_contract_macro::smart_contract;
+use smart_contract_macros::smart_contract;
 
 pub struct Ownable {
     ownerships: HashMap<[u8; 32], [u8; 32]>, //LHS:item_id RHS:owner address

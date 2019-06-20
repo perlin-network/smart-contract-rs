@@ -1,7 +1,7 @@
 [workspace]
 members = [
 	"smart-contract",
-	"smart-contract-macro",
+	"smart-contract-macros",
 	"examples/transfer-back",
 	"examples/token",
 	"examples/lucky-draw",

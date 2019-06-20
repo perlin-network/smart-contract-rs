@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fmt;
 
 use smart_contract::payload::Parameters;
-use smart_contract_macro::smart_contract;
+use smart_contract_macros::smart_contract;
 
 pub struct Contract {
     pub balances: HashMap<[u8; 32], u64>,

@@ -1,5 +1,5 @@
 [package]
-name = "smart_contract_macro"
+name = "smart-contract-macros"
 version = "0.1.0"
 authors = ["Kenta Iwasaki <kenta@perlin.net>"]
 edition = "2018"
