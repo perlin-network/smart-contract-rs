@@ -58,13 +58,15 @@ impl Token {
             return Err("Sender does not have enough balance.".into());
         }
 
+        // Modify sender balance.
+        self.balances.insert(sender, sender_balance - amount);
+
         let recipient_balance = match self.balances.get(&recipient) {
             Some(balance) => *balance,
             None => 0,
         };
 
-        // Modify balances.
-        self.balances.insert(sender, sender_balance - amount);
+        // Modify recipient balance.
         self.balances.insert(recipient, recipient_balance + amount);
 
         Ok(())
