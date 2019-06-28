@@ -6,4 +6,5 @@ members = [
 	"examples/token",
 	"examples/lucky-draw",
 	"examples/nft",
+	"examples/chat"
 ]

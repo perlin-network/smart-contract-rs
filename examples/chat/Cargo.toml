@@ -1,0 +1,15 @@
+[package]
+name = "chat"
+version = "0.1.0"
+authors = ["Kenta Iwasaki <kenta@perlin.net>"]
+edition = "2018"
+
+[profile.release]
+lto = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+smart-contract = { path = "../../smart-contract" }
+smart-contract-macros = { path = "../../smart-contract-macros"}
