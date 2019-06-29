@@ -229,10 +229,10 @@ impl ParametersBuilder {
                 round_id: config.round_id,
                 transaction_id: config.transaction_id,
                 sender: config.sender,
-                amount: config.amount, 
+                amount: config.amount,
                 parameters: vec![],
                 pos: 0,
-            }
+            },
         }
     }
 

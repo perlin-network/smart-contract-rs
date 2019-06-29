@@ -21,7 +21,6 @@ impl Contract {
     }
 }
 
-
 pub struct LuckyDraw(Contract, u64);
 
 #[derive(Debug, Clone)]

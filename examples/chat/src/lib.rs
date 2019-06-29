@@ -14,19 +14,23 @@ struct Entry {
 }
 
 struct Chat {
-    logs: BTreeMap<u64, Vec<Entry>>
+    logs: BTreeMap<u64, Vec<Entry>>,
 }
 
 const NUM_ROUNDS_UNTIL_MESSAGE_PRUNED: u64 = 50;
 
 fn prune_old_messages(chat: &mut Chat, current_round_idx: u64) {
-    let pruned_round_indices: Vec<u64> = chat.logs.iter().filter_map(|(round_idx, _)| {
-        if round_idx + NUM_ROUNDS_UNTIL_MESSAGE_PRUNED < current_round_idx {
-            Some(*round_idx)
-        } else {
-            None
-        }
-    }).collect();
+    let pruned_round_indices: Vec<u64> = chat
+        .logs
+        .iter()
+        .filter_map(|(round_idx, _)| {
+            if round_idx + NUM_ROUNDS_UNTIL_MESSAGE_PRUNED < current_round_idx {
+                Some(*round_idx)
+            } else {
+                None
+            }
+        })
+        .collect();
 
     for round_idx in pruned_round_indices {
         chat.logs.remove(&round_idx);
@@ -36,11 +40,16 @@ fn prune_old_messages(chat: &mut Chat, current_round_idx: u64) {
 #[smart_contract]
 impl Chat {
     fn init(_params: &mut Parameters) -> Self {
-        Self { logs: BTreeMap::new() }
+        Self {
+            logs: BTreeMap::new(),
+        }
     }
 
     fn send_message(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
-        let entry = Entry { sender: params.sender, message: params.read() };
+        let entry = Entry {
+            sender: params.sender,
+            message: params.read(),
+        };
 
         if let Some(entries) = self.logs.get_mut(&params.round_idx) {
             entries.push(entry);
