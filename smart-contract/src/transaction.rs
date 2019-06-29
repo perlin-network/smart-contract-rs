@@ -8,7 +8,7 @@ pub enum TransactionTag {
     Stake,
 }
 
-pub trait Transaction: Writeable + Readable {
+pub trait Transaction: Writeable + Readable + Sized {
     fn send_transaction(self) {
         let mut payload = vec![];
         self.write_to(&mut payload);

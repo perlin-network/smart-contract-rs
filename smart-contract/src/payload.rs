@@ -1,6 +1,6 @@
 use std::io::Write;
 
-pub trait Writeable: Sized {
+pub trait Writeable {
     fn write_to(&self, buffer: &mut Vec<u8>);
 }
 
@@ -54,7 +54,27 @@ impl Writeable for String {
     }
 }
 
+impl Writeable for str {
+    fn write_to(&self, buffer: &mut Vec<u8>) {
+        for x in self.chars() {
+            (x as u8).write_to(buffer);
+        }
+
+        0u8.write_to(buffer);
+    }
+}
+
 impl<T: Writeable> Writeable for Vec<T> {
+    fn write_to(&self, buffer: &mut Vec<u8>) {
+        self.len().write_to(buffer);
+
+        for x in self {
+            x.write_to(buffer);
+        }
+    }
+}
+
+impl<T: Writeable> Writeable for [T] {
     fn write_to(&self, buffer: &mut Vec<u8>) {
         self.len().write_to(buffer);
 
@@ -185,5 +205,77 @@ impl Parameters {
 
     pub fn read<T: Readable>(&mut self) -> T {
         T::read_from(&self.parameters, &mut self.pos)
+    }
+}
+
+pub struct ParametersBuilder {
+    params: Parameters,
+}
+
+#[derive(Clone, Debug)]
+pub struct ParametersBuilderConfig {
+    pub round_idx: u64,
+    pub round_id: [u8; 32],
+    pub transaction_id: [u8; 32],
+    pub sender: [u8; 32],
+    pub amount: u64, // can be extended or removed
+}
+
+impl ParametersBuilder {
+    pub fn new(config: ParametersBuilderConfig) -> ParametersBuilder {
+        ParametersBuilder {
+            params: Parameters {
+                round_idx: config.round_idx,
+                round_id: config.round_id,
+                transaction_id: config.transaction_id,
+                sender: config.sender,
+                amount: config.amount, 
+                parameters: vec![],
+                pos: 0,
+            }
+        }
+    }
+
+    pub fn write<T: Writeable + ?Sized>(&mut self, x: &T) {
+        x.write_to(&mut self.params.parameters);
+    }
+
+    pub fn build(self) -> Parameters {
+        self.params
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parameters_builder() {
+        const ROUND_IDX: u64 = 100;
+        const ROUND_ID: [u8; 32] = [42; 32];
+        const TRANSACTION_ID: [u8; 32] = [0; 32];
+        const SENDER: [u8; 32] = [1; 32];
+        const AMOUNT: u64 = 20;
+
+        let mut builder = ParametersBuilder::new(ParametersBuilderConfig {
+            round_idx: ROUND_IDX,
+            round_id: ROUND_ID,
+            transaction_id: TRANSACTION_ID,
+            sender: SENDER,
+            amount: AMOUNT,
+        });
+        builder.write(&100u64);
+        builder.write("Hello");
+
+        let mut params = builder.build();
+
+        assert_eq!(params.round_idx, ROUND_IDX);
+        assert_eq!(params.round_id, ROUND_ID);
+        assert_eq!(params.transaction_id, TRANSACTION_ID);
+        assert_eq!(params.sender, SENDER);
+        assert_eq!(params.amount, AMOUNT);
+
+        assert_eq!(params.read::<u64>(), 100);
+        assert_eq!(params.read::<String>(), "Hello");
     }
 }
