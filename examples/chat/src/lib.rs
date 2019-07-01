@@ -33,6 +33,13 @@ fn prune_old_messages(chat: &mut Chat, current_round_idx: u64) {
     }
 }
 
+fn to_hex_string(bytes: [u8; 32]) -> String {
+    let strs: Vec<String> = bytes.iter()
+        .map(|b| format!("{:02x}", b))
+        .collect();
+    strs.join("")
+}
+
 #[smart_contract]
 impl Chat {
     fn init(_params: &mut Parameters) -> Self {
@@ -59,7 +66,7 @@ impl Chat {
 
         for (_, logs) in self.logs.iter_mut() {
             for entry in logs {
-                messages.push(format!("<{:x?}> {}", entry.sender, entry.message));
+                messages.push(format!("<{}> {}", to_hex_string(entry.sender), entry.message));
             }
         }
 

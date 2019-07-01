@@ -81,6 +81,7 @@ pub struct Contract {
 
 impl Writeable for Contract {
     fn write_to(&self, buffer: &mut Vec<u8>) {
+        0u64.write_to(buffer);
         self.payload.write_to(buffer);
         buffer.append(&mut self.code.clone());
     }
