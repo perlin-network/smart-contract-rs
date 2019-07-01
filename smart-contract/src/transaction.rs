@@ -81,7 +81,7 @@ pub struct Contract {
 
 impl Writeable for Contract {
     fn write_to(&self, buffer: &mut Vec<u8>) {
-        0u64.write_to(buffer);
+        0u64.write_to(buffer); // Specify an empty gas limit.
         self.payload.write_to(buffer);
         buffer.append(&mut self.code.clone());
     }
@@ -91,6 +91,7 @@ impl Readable for Contract {
     fn read_from(buffer: &[u8], pos: &mut u64) -> Contract {
         let mut params = Contract::default();
 
+        u64::read_from(buffer, pos); // Ignore gas limit.
         params.payload = Vec::<u8>::read_from(buffer, pos);
         params.code = buffer[*pos as usize..].to_vec();
 
