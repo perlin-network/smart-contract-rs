@@ -66,7 +66,7 @@ impl Chat {
 
         for (_, logs) in self.logs.iter_mut() {
             for entry in logs {
-                messages.push(format!("<{}> {}", to_hex_string(entry.sender), entry.message));
+                messages.insert(0, format!("<{}> {}", to_hex_string(entry.sender), entry.message));
             }
         }
 
