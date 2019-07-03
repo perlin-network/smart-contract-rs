@@ -208,30 +208,57 @@ impl Parameters {
     }
 }
 
+#[derive(Default)]
 pub struct ParametersBuilder {
     params: Parameters,
 }
 
-#[derive(Clone, Debug)]
-pub struct ParametersBuilderConfig {
-    pub round_idx: u64,
-    pub round_id: [u8; 32],
-    pub transaction_id: [u8; 32],
-    pub sender: [u8; 32],
-    pub amount: u64, // can be extended or removed
-}
-
 impl ParametersBuilder {
-    pub fn new(config: ParametersBuilderConfig) -> ParametersBuilder {
-        ParametersBuilder {
+    pub fn new() -> ParametersBuilder {
+        Default::default()
+    }
+
+    pub fn with_round_idx(self, round_idx: u64) -> Self {
+        Self {
             params: Parameters {
-                round_idx: config.round_idx,
-                round_id: config.round_id,
-                transaction_id: config.transaction_id,
-                sender: config.sender,
-                amount: config.amount,
-                parameters: vec![],
-                pos: 0,
+                round_idx,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_round_id(self, round_id: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                round_id,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_transaction_id(self, transaction_id: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                transaction_id,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_sender(self, sender: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                sender,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_amount(self, amount: u64) -> Self {
+        Self {
+            params: Parameters {
+                amount,
+                ..self.params
             },
         }
     }
@@ -257,13 +284,13 @@ mod tests {
         const SENDER: [u8; 32] = [1; 32];
         const AMOUNT: u64 = 20;
 
-        let mut builder = ParametersBuilder::new(ParametersBuilderConfig {
-            round_idx: ROUND_IDX,
-            round_id: ROUND_ID,
-            transaction_id: TRANSACTION_ID,
-            sender: SENDER,
-            amount: AMOUNT,
-        });
+        let mut builder = ParametersBuilder::new()
+            .with_round_idx(ROUND_IDX)
+            .with_round_id(ROUND_ID)
+            .with_transaction_id(TRANSACTION_ID)
+            .with_sender(SENDER)
+            .with_amount(AMOUNT);
+
         builder.write(&100u64);
         builder.write("Hello");
 
