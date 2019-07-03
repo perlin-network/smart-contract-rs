@@ -1,12 +1,13 @@
 //! A simple decentralized chat example where all messages get pruned after they remain
 //! within the contract over a period of 50 consensus rounds.
 
-use std::collections::BTreeMap;
 use std::error::Error;
+
+use smart_contract_macros::smart_contract;
 
 use smart_contract::log;
 use smart_contract::payload::Parameters;
-use smart_contract_macros::smart_contract;
+use std::collections::VecDeque;
 
 struct Entry {
     sender: [u8; 32],
@@ -14,22 +15,15 @@ struct Entry {
 }
 
 struct Chat {
-    logs: BTreeMap<u64, Vec<Entry>>
+    logs: VecDeque<Entry>
 }
 
-const NUM_ROUNDS_UNTIL_MESSAGE_PRUNED: u64 = 50;
+const MAX_LOG_CAPACITY: usize = 50;
+const MAX_MESSAGE_SIZE: usize = 240;
 
-fn prune_old_messages(chat: &mut Chat, current_round_idx: u64) {
-    let pruned_round_indices: Vec<u64> = chat.logs.iter().filter_map(|(round_idx, _)| {
-        if round_idx + NUM_ROUNDS_UNTIL_MESSAGE_PRUNED < current_round_idx {
-            Some(*round_idx)
-        } else {
-            None
-        }
-    }).collect();
-
-    for round_idx in pruned_round_indices {
-        chat.logs.remove(&round_idx);
+fn prune_old_messages(chat: &mut Chat) {
+    if chat.logs.len() > MAX_LOG_CAPACITY {
+        chat.logs.pop_front();
     }
 }
 
@@ -43,20 +37,27 @@ fn to_hex_string(bytes: [u8; 32]) -> String {
 #[smart_contract]
 impl Chat {
     fn init(_params: &mut Parameters) -> Self {
-        Self { logs: BTreeMap::new() }
+        Self { logs: VecDeque::new() }
     }
 
     fn send_message(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         let entry = Entry { sender: params.sender, message: params.read() };
 
-        if let Some(entries) = self.logs.get_mut(&params.round_idx) {
-            entries.push(entry);
-            return Ok(());
+        // Ensure that messages are not empty.
+        if entry.message.len() == 0 {
+            return Err("Message must not be empty.".into());
         }
 
-        self.logs.insert(params.round_idx, vec![entry]);
+        // Ensure that message are at most 240 characters.
+        if entry.message.len() > MAX_MESSAGE_SIZE {
+            return Err(format!("Message must not be more than {} characters.", MAX_MESSAGE_SIZE).into());
+        }
 
-        prune_old_messages(self, params.round_idx);
+        // Push chat message into logs.
+        self.logs.push_back(entry);
+
+        // Prune old messages if necessary.
+        prune_old_messages(self);
 
         Ok(())
     }
@@ -64,10 +65,8 @@ impl Chat {
     fn get_messages(&mut self, _params: &mut Parameters) -> Result<(), Box<dyn Error>> {
         let mut messages = Vec::new();
 
-        for (_, logs) in self.logs.iter_mut() {
-            for entry in logs {
-                messages.insert(0, format!("<{}> {}", to_hex_string(entry.sender), entry.message));
-            }
+        for entry in &self.logs {
+            messages.insert(0, format!("<{}> {}", to_hex_string(entry.sender), entry.message));
         }
 
         log(&messages.join("\n"));
