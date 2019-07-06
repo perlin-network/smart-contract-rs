@@ -1,6 +1,6 @@
 use std::io::Write;
 
-pub trait Writeable: Sized {
+pub trait Writeable {
     fn write_to(&self, buffer: &mut Vec<u8>);
 }
 
@@ -54,7 +54,27 @@ impl Writeable for String {
     }
 }
 
+impl Writeable for str {
+    fn write_to(&self, buffer: &mut Vec<u8>) {
+        for x in self.chars() {
+            (x as u8).write_to(buffer);
+        }
+
+        0u8.write_to(buffer);
+    }
+}
+
 impl<T: Writeable> Writeable for Vec<T> {
+    fn write_to(&self, buffer: &mut Vec<u8>) {
+        self.len().write_to(buffer);
+
+        for x in self {
+            x.write_to(buffer);
+        }
+    }
+}
+
+impl<T: Writeable> Writeable for [T] {
     fn write_to(&self, buffer: &mut Vec<u8>) {
         self.len().write_to(buffer);
 
@@ -185,5 +205,104 @@ impl Parameters {
 
     pub fn read<T: Readable>(&mut self) -> T {
         T::read_from(&self.parameters, &mut self.pos)
+    }
+}
+
+#[derive(Default)]
+pub struct ParametersBuilder {
+    params: Parameters,
+}
+
+impl ParametersBuilder {
+    pub fn new() -> ParametersBuilder {
+        Default::default()
+    }
+
+    pub fn with_round_idx(self, round_idx: u64) -> Self {
+        Self {
+            params: Parameters {
+                round_idx,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_round_id(self, round_id: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                round_id,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_transaction_id(self, transaction_id: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                transaction_id,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_sender(self, sender: [u8; 32]) -> Self {
+        Self {
+            params: Parameters {
+                sender,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn with_amount(self, amount: u64) -> Self {
+        Self {
+            params: Parameters {
+                amount,
+                ..self.params
+            },
+        }
+    }
+
+    pub fn write<T: Writeable + ?Sized>(&mut self, x: &T) {
+        x.write_to(&mut self.params.parameters);
+    }
+
+    pub fn build(self) -> Parameters {
+        self.params
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parameters_builder() {
+        const ROUND_IDX: u64 = 100;
+        const ROUND_ID: [u8; 32] = [42; 32];
+        const TRANSACTION_ID: [u8; 32] = [0; 32];
+        const SENDER: [u8; 32] = [1; 32];
+        const AMOUNT: u64 = 20;
+
+        let mut builder = ParametersBuilder::new()
+            .with_round_idx(ROUND_IDX)
+            .with_round_id(ROUND_ID)
+            .with_transaction_id(TRANSACTION_ID)
+            .with_sender(SENDER)
+            .with_amount(AMOUNT);
+
+        builder.write(&100u64);
+        builder.write("Hello");
+
+        let mut params = builder.build();
+
+        assert_eq!(params.round_idx, ROUND_IDX);
+        assert_eq!(params.round_id, ROUND_ID);
+        assert_eq!(params.transaction_id, TRANSACTION_ID);
+        assert_eq!(params.sender, SENDER);
+        assert_eq!(params.amount, AMOUNT);
+
+        assert_eq!(params.read::<u64>(), 100);
+        assert_eq!(params.read::<String>(), "Hello");
     }
 }

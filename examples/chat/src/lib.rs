@@ -41,7 +41,10 @@ impl Chat {
     }
 
     fn send_message(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
-        let entry = Entry { sender: params.sender, message: params.read() };
+        let entry = Entry {
+            sender: params.sender,
+            message: params.read(),
+        };
 
         // Ensure that messages are not empty.
         if entry.message.len() == 0 {
