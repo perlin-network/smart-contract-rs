@@ -116,26 +116,28 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                     ensure_input_params(name.to_string().as_str(), &inputs);
 
                     match name.to_string().as_str() {
-                        "init" => {
-                            match &func.decl.output {
-                                syn::ReturnType::Type(_, typ) => {
-                                    if quote!(#typ).to_string() != "Self" && quote!(#typ).to_string() != "Self" {
-                                        panic!("The `init` fn need to return Self.")
-                                    }
+                        "init" => match &func.decl.output {
+                            syn::ReturnType::Type(_, typ) => {
+                                if quote!(#typ).to_string() != "Self"
+                                    && quote!(#typ).to_string() != "Self"
+                                {
+                                    panic!("The `init` fn need to return Self.")
                                 }
-                                _ => panic!("The `init` fn need to return Self.")
                             }
-                        }
-                        _ => {
-                            match &func.decl.output {
-                                syn::ReturnType::Type(_, typ) => {
-                                    if quote!(#typ).to_string() != "Result < (  ) , Box < dyn Error > >" && quote!(#typ).to_string() != "Result < (  ) , Box < dyn std :: error :: Error > >" {
-                                        panic!("Smart contract functions need to return Result<(), Box<std::error::Error>>.")
-                                    }
+                            _ => panic!("The `init` fn need to return Self."),
+                        },
+                        _ => match &func.decl.output {
+                            syn::ReturnType::Type(_, typ) => {
+                                if quote!(#typ).to_string() != "Result < (  ) , String >"
+                                    && quote!(#typ).to_string() != "Result < (  ) , String >"
+                                {
+                                    panic!("Smart contract functions need to return Result<(), String>.")
                                 }
-                                _ => panic!("Smart contract functions need to return Result<(), Box<std::error::Error>>.")
                             }
-                        }
+                            _ => panic!(
+                                "Smart contract functions need to return Result<(), String>."
+                            ),
+                        },
                     }
 
                     self.method_idents.push(name.clone());
@@ -160,15 +162,13 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
     let mut tokens: TokenStream = quote! {
         #syntax
 
-        thread_local! {
-            static SMART_CONTRACT_INSTANCE: ::std::cell::RefCell<#struct_ident> = {
-                ::std::cell::RefCell::new(#struct_ident::init(&mut Parameters::load()))
-            }
-        }
+        static mut SMART_CONTRACT_INSTANCE: Option<#struct_ident> = None;
 
         #[no_mangle]
         pub extern "C" fn _contract_init() {
-            SMART_CONTRACT_INSTANCE.with(|_| {});
+            unsafe {
+                SMART_CONTRACT_INSTANCE = Some(#struct_ident::init(&mut Parameters::load()));
+            }
         }
     }
     .into();
@@ -183,12 +183,11 @@ pub fn smart_contract(_args: TokenStream, input: TokenStream) -> TokenStream {
                     quote! {
                         #[no_mangle]
                         pub extern "C" fn #raw_name() {
-                            SMART_CONTRACT_INSTANCE.with(|smart_contract| {
-                                if let Err(err) = smart_contract.borrow_mut().#name(&mut Parameters::load()) {
-                                    let msg = err.to_string();
-                                    unsafe { ::smart_contract::sys::_result(msg.as_ptr(), msg.len()); }
+                            unsafe {
+                                if let Err(msg) = SMART_CONTRACT_INSTANCE.as_mut().unwrap().#name(&mut Parameters::load()) {
+                                    ::smart_contract::sys::_result(msg.as_ptr(), msg.len());
                                 }
-                            });
+                            }
                         }
                     }
                 }

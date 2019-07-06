@@ -1,4 +1,5 @@
 use crate::payload::{Readable, Writeable};
+use alloc::{vec, vec::Vec};
 
 #[repr(u8)]
 pub enum TransactionTag {

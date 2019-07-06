@@ -8,3 +8,9 @@ members = [
 	"examples/nft",
 	"examples/chat"
 ]
+
+[profile.release]
+opt-level = "z"
+panic = 'abort'
+debug = false
+lto = true

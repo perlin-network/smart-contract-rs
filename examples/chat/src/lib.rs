@@ -1,7 +1,9 @@
-//! A simple decentralized chat example where all messages get pruned after they remain
-//! within the contract over a period of 50 consensus rounds.
-
-use std::error::Error;
+//! A simple decentralized chat example with a max history buffer holding up to
+//! 50 messages.
+//!
+//! Chat messages are not allowed to be empty, and are limited to be at most
+//! 240 characters. For a frontend to this example, check out:
+//! https://github.com/perlin-network/decentralized-chat
 
 use smart_contract_macros::smart_contract;
 
@@ -15,7 +17,7 @@ struct Entry {
 }
 
 struct Chat {
-    logs: VecDeque<Entry>
+    logs: VecDeque<Entry>,
 }
 
 const MAX_LOG_CAPACITY: usize = 50;
@@ -28,19 +30,19 @@ fn prune_old_messages(chat: &mut Chat) {
 }
 
 fn to_hex_string(bytes: [u8; 32]) -> String {
-    let strs: Vec<String> = bytes.iter()
-        .map(|b| format!("{:02x}", b))
-        .collect();
+    let strs: Vec<String> = bytes.iter().map(|b| format!("{:02x}", b)).collect();
     strs.join("")
 }
 
 #[smart_contract]
 impl Chat {
     fn init(_params: &mut Parameters) -> Self {
-        Self { logs: VecDeque::new() }
+        Self {
+            logs: VecDeque::new(),
+        }
     }
 
-    fn send_message(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn send_message(&mut self, params: &mut Parameters) -> Result<(), String> {
         let entry = Entry {
             sender: params.sender,
             message: params.read(),
@@ -53,7 +55,10 @@ impl Chat {
 
         // Ensure that message are at most 240 characters.
         if entry.message.len() > MAX_MESSAGE_SIZE {
-            return Err(format!("Message must not be more than {} characters.", MAX_MESSAGE_SIZE).into());
+            return Err(format!(
+                "Message must not be more than {} characters.",
+                MAX_MESSAGE_SIZE
+            ));
         }
 
         // Push chat message into logs.
@@ -65,11 +70,14 @@ impl Chat {
         Ok(())
     }
 
-    fn get_messages(&mut self, _params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn get_messages(&mut self, _params: &mut Parameters) -> Result<(), String> {
         let mut messages = Vec::new();
 
         for entry in &self.logs {
-            messages.insert(0, format!("<{}> {}", to_hex_string(entry.sender), entry.message));
+            messages.insert(
+                0,
+                format!("<{}> {}", to_hex_string(entry.sender), entry.message),
+            );
         }
 
         log(&messages.join("\n"));

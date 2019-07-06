@@ -7,5 +7,8 @@ license = "MIT"
 repository = "https://github.com/perlin-network/smart-contract-rs"
 edition = "2018"
 
-[profile.release]
-lto = true
+[dependencies]
+wee_alloc = "0.4.4"
+
+[features]
+no_std = []

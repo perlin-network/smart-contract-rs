@@ -1,4 +1,5 @@
-use std::io::Write;
+use alloc::string::String;
+use alloc::{vec, vec::Vec};
 
 pub trait Writeable {
     fn write_to(&self, buffer: &mut Vec<u8>);
@@ -10,8 +11,8 @@ macro_rules! writeable {
             impl Writeable for $x {
                 fn write_to(&self, buffer: &mut Vec<u8>) {
                     unsafe {
-                        let x = ::std::slice::from_raw_parts(self as *const _ as *const u8, ::std::mem::size_of::<Self>());
-                        buffer.write_all(x).unwrap();
+                        let x = ::alloc::slice::from_raw_parts(self as *const _ as *const u8, ::core::mem::size_of::<Self>());
+                        buffer.extend_from_slice(x);
                     }
                 }
             }
@@ -96,13 +97,13 @@ macro_rules! readable {
                     unsafe {
                         let ptr = buffer.as_ptr().offset(*pos as isize);
 
-                        let size = ::std::mem::size_of::<$x>();
+                        let size = ::core::mem::size_of::<$x>();
 
-                        let x = ::std::slice::from_raw_parts(ptr, size);
+                        let x = ::alloc::slice::from_raw_parts(ptr, size);
                         *pos += size as u64;
 
-                        let mut ret: $x = ::std::mem::uninitialized();
-                        ::std::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::std::mem::size_of::<$x>());
+                        let mut ret: $x = ::core::mem::MaybeUninit::uninit().assume_init();
+                        ::core::ptr::copy(x.as_ptr(), &mut ret as *mut _ as *mut u8, ::core::mem::size_of::<$x>());
 
                         ret
                     }
