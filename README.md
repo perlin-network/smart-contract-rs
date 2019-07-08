@@ -7,4 +7,4 @@ Write smart contracts for Wavelet in Rust.
 
 # Useage
 
-`cargo build --target=wasm32-unknown-unknown`cargo build --target=wasm32-unknown-unknown
+`cargo build --target=wasm32-unknown-unknown`
