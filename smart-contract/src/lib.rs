@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(core_intrinsics, alloc_error_handler)]
+#![feature(core_intrinsics, alloc_error_handler, maybe_uninit)]
 
 extern crate alloc;
 extern crate wee_alloc;

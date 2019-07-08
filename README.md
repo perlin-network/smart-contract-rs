@@ -4,3 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/smart-contract.svg)](https://crates.io/crates/smart-contract)
 
 Write smart contracts for Wavelet in Rust.
+
+# Useage
+
+`cargo build --target=wasm32-unknown-unknown`cargo build --target=wasm32-unknown-unknown
