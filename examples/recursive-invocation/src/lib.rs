@@ -3,7 +3,7 @@
 use std::error::Error;
 
 use smart_contract::payload::Parameters;
-use smart_contract::transaction::{Transaction, Transfer};
+use smart_contract::transaction::{Transaction, Transfer, Invocation};
 use smart_contract_macros::smart_contract;
 
 pub struct Contract;
@@ -20,11 +20,13 @@ impl Contract {
         Transfer {
             destination: id,
             amount: 0,
-            func_name: b"bomb".to_vec(),
-            func_params: id.to_vec(),
+            invocation: Some(Invocation {
+                gas_limit: 100000,
+                func_name: b"bomb".to_vec(),
+                func_params: id.to_vec(),
+            })
         }
         .send_transaction();
-
         Ok(())
     }
 }
