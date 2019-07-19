@@ -1,5 +1,6 @@
-use crate::payload::{Readable, Writeable};
 use alloc::{vec, vec::Vec};
+
+use crate::payload::{Readable, Writeable};
 
 #[repr(u8)]
 pub enum TransactionTag {
@@ -33,6 +34,7 @@ pub struct Transfer {
 #[derive(Default)]
 pub struct Invocation {
     pub gas_limit: u64,
+    pub gas_deposit: u64,
     pub func_name: Vec<u8>,
     pub func_params: Vec<u8>,
 }
@@ -44,6 +46,7 @@ impl Writeable for Transfer {
 
         if let Some(ref invocation) = self.invocation {
             invocation.gas_limit.write_to(buffer);
+            invocation.gas_deposit.write_to(buffer);
             invocation.func_name.write_to(buffer);
             invocation.func_params.write_to(buffer);
         }
@@ -59,7 +62,10 @@ impl Readable for Transfer {
 
         if *pos < buffer.len() as u64 {
             let mut invocation = Invocation::default();
+
             u64::read_from(buffer, pos); // Read gas limit.
+            u64::read_from(buffer, pos); // Read gas deposit.
+
             if *pos < buffer.len() as u64 {
                 invocation.func_name = Vec::<u8>::read_from(buffer, pos); // Read function name.
             }
@@ -88,6 +94,7 @@ pub struct Contract {
 impl Writeable for Contract {
     fn write_to(&self, buffer: &mut Vec<u8>) {
         0u64.write_to(buffer); // Specify an empty gas limit.
+        0u64.write_to(buffer); // Specify an empty gas deposit.
         self.payload.write_to(buffer);
         buffer.append(&mut self.code.clone());
     }
@@ -98,6 +105,7 @@ impl Readable for Contract {
         let mut params = Contract::default();
 
         u64::read_from(buffer, pos); // Ignore gas limit.
+        u64::read_from(buffer, pos); // Ignore gas deposit.
         params.payload = Vec::<u8>::read_from(buffer, pos);
         params.code = buffer[*pos as usize..].to_vec();
 
