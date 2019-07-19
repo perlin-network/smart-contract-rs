@@ -1,6 +1,6 @@
 [package]
 name = "smart-contract"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["losfair <zhy20000919@hotmail.com>"]
 description = "Write smart contracts for Wavelet in Rust."
 license = "MIT"

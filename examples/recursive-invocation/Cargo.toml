@@ -1,0 +1,15 @@
+[package]
+name = "recursive-invocation"
+version = "0.1.0"
+authors = ["losfair <zhy20000919@hotmail.com>"]
+edition = "2018"
+
+[profile.release]
+lto = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+smart-contract = { path = "../../smart-contract" }
+smart-contract-macros = { path = "../../smart-contract-macros"}
