@@ -129,7 +129,7 @@ impl<'ast> Visit<'ast> for ContractVisitor {
                         _ => match &func.decl.output {
                             syn::ReturnType::Type(_, typ) => {
                                 if quote!(#typ).to_string() != "Result < (  ) , String >"
-                                    && quote!(#typ).to_string() != "Result < (  ) , String >"
+                                    && quote!(#typ).to_string() != "Result < () , String >"
                                 {
                                     panic!("Smart contract functions need to return Result<(), String>.")
                                 }
