@@ -20,7 +20,7 @@ impl Contract {
             destination: id,
             amount: 0,
             invocation: Some(Invocation {
-                gas_limit: 100000,
+                gas_limit: 1000000,
                 gas_deposit: 0,
                 func_name: b"bomb".to_vec(),
                 func_params: id.to_vec(),
