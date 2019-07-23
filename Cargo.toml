@@ -9,3 +9,9 @@ members = [
 	"examples/chat",
 	"examples/recursive-invocation"
 ]
+
+[profile.release]
+opt-level = "z"
+panic = 'abort'
+debug = false
+lto = true

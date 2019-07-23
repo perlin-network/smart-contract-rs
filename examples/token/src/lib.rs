@@ -7,7 +7,6 @@
 //! Feel free to change up this contract and deploy your own
 //! cryptocurrency token on Wavelet!
 use std::collections::HashMap;
-use std::error::Error;
 
 use smart_contract::debug;
 use smart_contract::payload::Parameters;
@@ -29,7 +28,7 @@ impl Token {
         Self { balances }
     }
 
-    fn balance(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn balance(&mut self, params: &mut Parameters) -> Result<(), String> {
         let wallet_address: [u8; 32] = params.read();
 
         let wallet_balance = match self.balances.get(&wallet_address) {
@@ -42,7 +41,7 @@ impl Token {
         Ok(())
     }
 
-    fn transfer(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn transfer(&mut self, params: &mut Parameters) -> Result<(), String> {
         let sender = params.sender;
 
         let recipient: [u8; 32] = params.read();

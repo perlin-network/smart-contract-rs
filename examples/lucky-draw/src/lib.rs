@@ -46,16 +46,14 @@ impl LuckyDraw {
         LuckyDraw(Contract::init(params), 0)
     }
 
-    fn lucky_draw(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn lucky_draw(&mut self, params: &mut Parameters) -> Result<(), String> {
         let amount: u64 = params.read();
         if amount > 10 {
-            return Err(Box::new(LuckyDrawError::AmountTooHigh));
+            return Err(LuckyDrawError::AmountTooHigh.to_string());
         }
 
         if self.1 == ::std::u64::MAX {
-            return Err(Box::new(LuckyDrawError::CustomError(
-                "Counter is full".to_string(),
-            )));
+            return Err(LuckyDrawError::CustomError("Counter is full".to_string()).to_string());
         }
         self.1 += 1;
 

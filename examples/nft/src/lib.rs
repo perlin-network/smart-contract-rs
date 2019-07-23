@@ -4,7 +4,6 @@
 //! An example non-fungible token would be CryptoKitties.
 
 use std::collections::HashMap;
-use std::error::Error;
 
 use smart_contract::payload::Parameters;
 use smart_contract_macros::smart_contract;
@@ -23,7 +22,7 @@ impl Ownable {
         }
     }
 
-    fn create_ownable(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn create_ownable(&mut self, params: &mut Parameters) -> Result<(), String> {
         let proposed_id = params.read::<[u8; 32]>();
 
         if self.ownerships.contains_key(&proposed_id) {
@@ -35,7 +34,7 @@ impl Ownable {
         Ok(())
     }
 
-    fn transfer_ownership(&mut self, params: &mut Parameters) -> Result<(), Box<dyn Error>> {
+    fn transfer_ownership(&mut self, params: &mut Parameters) -> Result<(), String> {
         let recipient = params.read::<[u8; 32]>();
         let item_id = params.read::<[u8; 32]>();
 
