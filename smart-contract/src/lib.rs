@@ -1,8 +1,6 @@
 #![no_std]
-#![feature(core_intrinsics, alloc_error_handler)]
 
 extern crate alloc;
-extern crate wee_alloc;
 
 use alloc::fmt::{Debug, Formatter, Result};
 
@@ -10,30 +8,6 @@ pub mod crypto;
 pub mod payload;
 pub mod sys;
 pub mod transaction;
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-#[cfg(feature = "no_std")]
-#[panic_handler]
-#[no_mangle]
-pub fn panic(info: &core::panic::PanicInfo) -> ! {
-    let msg = info.payload().downcast_ref::<&str>().unwrap();
-
-    unsafe {
-        sys::_result(msg.as_ptr(), msg.len());
-        core::intrinsics::abort();
-    }
-}
-
-#[cfg(feature = "no_std")]
-#[alloc_error_handler]
-#[no_mangle]
-pub fn oom(_: core::alloc::Layout) -> ! {
-    unsafe {
-        core::intrinsics::abort();
-    }
-}
 
 pub fn log(msg: &str) {
     unsafe {
