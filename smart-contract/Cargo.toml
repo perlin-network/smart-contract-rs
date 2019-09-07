@@ -1,14 +1,11 @@
 [package]
 name = "smart-contract"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["losfair <zhy20000919@hotmail.com>"]
 description = "Write smart contracts for Wavelet in Rust."
 license = "MIT"
 repository = "https://github.com/perlin-network/smart-contract-rs"
 edition = "2018"
-
-[dependencies]
-wee_alloc = "0.4.4"
 
 [features]
 no_std = []
