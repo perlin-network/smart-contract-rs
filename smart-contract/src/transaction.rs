@@ -4,7 +4,6 @@ use crate::payload::{Readable, Writeable};
 
 #[repr(u8)]
 pub enum TransactionTag {
-    Nop,
     Transfer,
     Contract,
     Stake,
